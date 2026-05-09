@@ -3,6 +3,7 @@ import { HEIGHT, WIDTH } from "./game/constants";
 import { Game } from "./game/Game";
 import { AudioManager } from "./game/audio";
 import { InputManager } from "./game/input";
+import { BUILD_LABEL } from "./game/metadata";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 
@@ -13,7 +14,7 @@ if (!app) {
 app.innerHTML = `
   <div id="game-shell">
     <canvas id="game" width="${WIDTH}" height="${HEIGHT}"></canvas>
-    <p class="help">UAEC Invasion prototype — placeholder art first, pixel art later.</p>
+    <p class="help">${BUILD_LABEL} — prototype build</p>
   </div>
 `;
 

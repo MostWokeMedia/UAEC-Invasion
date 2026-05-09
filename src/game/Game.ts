@@ -3,6 +3,7 @@ import { AudioManager } from "./audio";
 import { SpriteManager } from "./assets";
 import type { SpriteKey } from "./assets";
 import { InputManager } from "./input";
+import { BUILD_LABEL } from "./metadata";
 import {
   ENEMY_SPRITE,
   EXPLOSION_SPRITE,
@@ -1354,7 +1355,11 @@ export class Game {
 
     this.ctx.font = "18px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, 664);
+    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, 654);
+
+    this.ctx.font = "14px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText(BUILD_LABEL, WIDTH / 2, 682);
 
     this.ctx.globalAlpha = 0.12;
     this.ctx.fillStyle = "#f5f7ff";
