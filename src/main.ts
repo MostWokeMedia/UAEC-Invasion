@@ -1,60 +1,17 @@
 import "./style.css";
-
-const WIDTH = 960;
-const HEIGHT = 720;
-const COLS = 7;
-const ROWS = 5;
-const TOTAL_ENEMIES = COLS * ROWS;
-
-type GameMode = "start" | "playing" | "paused" | "player-hit" | "wave-clear" | "game-over";
-type EnemyType = "officer" | "shield" | "armored";
-type Direction = -1 | 1;
-type ProjectileOwner = "player" | "enemy";
-
-type Rect = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-type Enemy = {
-  id: string;
-  type: EnemyType;
-  row: number;
-  col: number;
-  alive: boolean;
-  score: number;
-};
-
-type Projectile = Rect & {
-  owner: ProjectileOwner;
-  speedY: number;
-};
-
-type BarricadeBlock = Rect & {
-  hp: number;
-  active: boolean;
-};
-
-type Tank = Rect & {
-  active: boolean;
-  direction: Direction;
-  speed: number;
-  spawnTimerMs: number;
-};
-
-type Player = Rect & {
-  speed: number;
-  invulnerableMs: number;
-};
-
-type FloatingText = {
-  text: string;
-  x: number;
-  y: number;
-  lifeMs: number;
-};
+import { COLS, HEIGHT, ROWS, TOTAL_ENEMIES, WIDTH } from "./game/constants";
+import type {
+  BarricadeBlock,
+  Direction,
+  Enemy,
+  EnemyType,
+  FloatingText,
+  GameMode,
+  Player,
+  Projectile,
+  Rect,
+  Tank,
+} from "./game/types";
 
 class InputManager {
   private keys = new Set<string>();
@@ -244,11 +201,18 @@ class Game {
     spawnTimerMs: 14000,
   };
 
+  private ctx: CanvasRenderingContext2D;
+  private input: InputManager;
+  private audio: AudioManager;
+
   constructor(
-    private ctx: CanvasRenderingContext2D,
-    private input: InputManager,
-    private audio: AudioManager,
+    ctx: CanvasRenderingContext2D,
+    input: InputManager,
+    audio: AudioManager,
   ) {
+    this.ctx = ctx;
+    this.input = input;
+    this.audio = audio;
     this.startWave();
   }
 
