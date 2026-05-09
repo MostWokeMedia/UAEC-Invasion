@@ -6,7 +6,7 @@ const COLS = 7;
 const ROWS = 5;
 const TOTAL_ENEMIES = COLS * ROWS;
 
-type GameMode = "start" | "playing" | "player-hit" | "wave-clear" | "game-over";
+type GameMode = "start" | "playing" | "paused" | "player-hit" | "wave-clear" | "game-over";
 type EnemyType = "officer" | "shield" | "armored";
 type Direction = -1 | 1;
 type ProjectileOwner = "player" | "enemy";
@@ -69,6 +69,8 @@ class InputManager {
       "Space",
       "Enter",
       "KeyM",
+      "KeyP",
+      "Escape",
     ]);
 
     window.addEventListener("keydown", (event) => {
@@ -255,6 +257,22 @@ class Game {
       this.audio.toggleMute();
     }
 
+    const pausePressed = this.input.consume("KeyP") || this.input.consume("Escape");
+
+    if (pausePressed && this.mode === "playing") {
+      this.mode = "paused";
+      return;
+    }
+
+    if (pausePressed && this.mode === "paused") {
+      this.mode = "playing";
+      return;
+    }
+
+    if (this.mode === "paused") {
+      return;
+    }
+
     if (this.mode === "start") {
       const startPressed = this.input.consume("Enter") || this.input.consume("Space");
 
@@ -321,6 +339,10 @@ class Game {
 
     if (this.mode === "game-over") {
       this.drawCenteredOverlay("GAME OVER", "Press ENTER or SPACE to restart");
+    }
+
+    if (this.mode === "paused") {
+      this.drawCenteredOverlay("PAUSED", "Press P or ESC to resume");
     }
 
     if (this.mode === "wave-clear") {
@@ -1063,7 +1085,7 @@ class Game {
 
     this.ctx.font = "16px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("A/D or ←/→ to move    SPACE to fire    M to mute", WIDTH / 2, HEIGHT / 2 + 58);
+    this.ctx.fillText("A/D or ←/→ to move    SPACE to fire    P/ESC to pause    M to mute", WIDTH / 2, HEIGHT / 2 + 58);
   }
 }
 
