@@ -9,7 +9,7 @@ These sprites should replace the temporary test sprites that were sliced from a 
 ## Global Style Rules
 
 - Pixel art
-- Clean transparent PNG backgrounds
+- Transparent PNG backgrounds
 - No boxed-in background artifacts
 - Strong silhouettes
 - Readable at small sizes
@@ -18,308 +18,249 @@ These sprites should replace the temporary test sprites that were sliced from a 
 - Neon pink accents
 - Cyan highlights
 - Limited palette preferred
-- Avoid over-detailing tiny sprites
-- Sprites should be readable first, decorative second
+- Readability first, decorative detail second
 
 ## Camera / Perspective Rules
 
 The game uses a pseudo-3D street perspective.
 
-That means sprites should feel slightly front-facing / street-facing rather than perfectly flat side-view.
-
-However:
-- readability is more important than realism
-- silhouettes must stay clear
-- enemy types must be distinguishable instantly
-
-## Sprite File Specs
-
----
+Sprites should feel slightly front-facing / street-facing rather than perfectly flat side-view.
 
 ## Player
 
-### File
-`public/assets/sprites/player/citizen_launcher_idle.png`
+### citizen_launcher_idle.png
 
-### Size
+Path:
+
+```text
+public/assets/sprites/player/citizen_launcher_idle.png
+Size:
+
 96x96 px
 
-### Description
-Neo Tokyo citizen with missile launcher.
-Player-facing street-defense stance.
-Should read clearly as the player character.
+Description:
 
-### Notes
-- Strong launcher silhouette
-- Legs/stance readable
-- Slight cyberpunk armor/clothing detail
-- Should feel like a resistance citizen, not UAEC
+Neo Tokyo citizen with missile launcher in idle street-defense stance.
 
----
+Notes:
 
-### File
-`public/assets/sprites/player/citizen_launcher_fire.png`
+Strong launcher silhouette
+Resistance citizen, not UAEC
+Readable legs and stance
+Dark clothing with subtle neon pink/cyan accents
+citizen_launcher_fire.png
 
-### Size
+Path:
+
+public/assets/sprites/player/citizen_launcher_fire.png
+
+Size:
+
 96x96 px
 
-### Description
-Same character as idle, but in a firing pose.
+Description:
 
-### Notes
-- Same silhouette and proportions as idle
-- Small muzzle flash or firing emphasis
-- Should clearly read as the firing state
+Same player character firing the missile launcher.
 
----
+Notes:
 
-## UAEC Officer
+Same proportions as idle
+Small muzzle flash or recoil emphasis
+Should clearly read as the firing state
+UAEC Officer
+uaec_officer_walk_01.png / uaec_officer_walk_02.png
 
-### File
-`public/assets/sprites/enemies/uaec_officer_walk_01.png`
+Path:
 
-### Size
+public/assets/sprites/enemies/
+
+Size:
+
 48x48 px
 
-### Description
-Small invader class.
-Basic UAEC officer.
+Description:
 
-### Notes
-- Simplest UAEC enemy type
-- Clear helmet / armor silhouette
-- Walk frame 1
+Small basic UAEC invader.
 
----
+Notes:
 
-### File
-`public/assets/sprites/enemies/uaec_officer_walk_02.png`
+Clear helmet silhouette
+Dark armor
+Neon pink visor/accent
+Two subtle walking frames
+UAEC Riot Shield Unit
+uaec_shield_walk_01.png / uaec_shield_walk_02.png
 
-### Size
-48x48 px
+Path:
 
-### Description
-Same as above, walk frame 2.
+public/assets/sprites/enemies/
 
-### Notes
-- Slight step variation
-- Keep silhouette very similar
-- Should animate cleanly with frame 1
+Size:
 
----
-
-## UAEC Riot Shield Unit
-
-### File
-`public/assets/sprites/enemies/uaec_shield_walk_01.png`
-
-### Size
 56x56 px
 
-### Description
-Medium invader class.
-UAEC unit carrying a riot shield.
+Description:
 
-### Notes
-- Shield must be obvious immediately
-- Frame 1
-- More defensive silhouette than officer
+Medium UAEC unit carrying a riot shield.
 
----
+Notes:
 
-### File
-`public/assets/sprites/enemies/uaec_shield_walk_02.png`
+Shield must be obvious immediately
+Slightly larger than officer
+Two subtle walking frames
+UAEC Armored Class
+uaec_armored_walk_01.png / uaec_armored_walk_02.png
 
-### Size
-56x56 px
+Path:
 
-### Description
-Same as above, walk frame 2.
+public/assets/sprites/enemies/
 
-### Notes
-- Slight walk cycle change
-- Shield remains prominent
+Size:
 
----
-
-## UAEC Armored Class
-
-### File
-`public/assets/sprites/enemies/uaec_armored_walk_01.png`
-
-### Size
 64x64 px
 
-### Description
-Large invader class.
-Heavy UAEC armored unit.
+Description:
 
-### Notes
-- Biggest standard enemy
-- Broad shoulders / heavy armor silhouette
-- Frame 1
+Large heavy UAEC armored invader.
 
----
+Notes:
 
-### File
-`public/assets/sprites/enemies/uaec_armored_walk_02.png`
+Broad shoulders
+Heavy armor silhouette
+Larger than shield unit
+Two subtle walking frames
+UAEC Tank
+uaec_tank.png
 
-### Size
-64x64 px
+Path:
 
-### Description
-Same as above, walk frame 2.
+public/assets/sprites/tank/uaec_tank.png
 
-### Notes
-- Slight walk variation
-- Must remain heavy and imposing
+Size:
 
----
-
-## UAEC Tank
-
-### File
-`public/assets/sprites/tank/uaec_tank.png`
-
-### Size
 160x80 px
 
-### Description
+Description:
+
 Mystery target / bonus target.
-UAEC tank unit.
 
-### Notes
-- Long readable silhouette
-- Must feel different from marching enemies
-- Slight cyberpunk armored vehicle styling
+Notes:
 
----
+Long readable tank silhouette
+Dark UAEC armor
+Neon pink UAEC mark
+Should read clearly even while moving across the background
+Projectiles
+player_missile.png
 
-## Projectiles
+Path:
 
-### File
-`public/assets/sprites/projectiles/player_missile.png`
+public/assets/sprites/projectiles/player_missile.png
 
-### Size
+Size:
+
 24x32 px
 
-### Description
-Player missile.
+Description:
 
-### Notes
-- Bright
-- Easy to see
-- Should read as a deliberate upward missile
+Bright upward missile.
 
----
+Notes:
 
-### File
-`public/assets/sprites/projectiles/enemy_projectile.png`
+Easy to see
+Distinct from enemy projectile
+Should feel slow, deliberate, and powerful
+enemy_projectile.png
 
-### Size
+Path:
+
+public/assets/sprites/projectiles/enemy_projectile.png
+
+Size:
+
 16x24 px
 
-### Description
-Enemy projectile.
+Description:
 
-### Notes
-- Distinct from player missile
-- Easy to read against dark background
+Red/pink enemy projectile.
 
----
+Notes:
 
-## Barricades
+Visually distinct from player missile
+Easy to see against the dark background
+Barricades
+concrete_block_full.png
 
-### File
-`public/assets/sprites/barricades/concrete_block_full.png`
+Path:
 
-### Size
+public/assets/sprites/barricades/concrete_block_full.png
+
+Size:
+
 16x16 px
 
-### Description
+Description:
+
 Undamaged barricade block.
 
-### Notes
-- Should feel like road/concrete defense cover
-- Readable in a grid arrangement
+concrete_block_damaged.png
 
----
+Path:
 
-### File
-`public/assets/sprites/barricades/concrete_block_damaged.png`
+public/assets/sprites/barricades/concrete_block_damaged.png
 
-### Size
+Size:
+
 16x16 px
 
-### Description
+Description:
+
 Damaged barricade block.
 
-### Notes
-- Same silhouette as full block
-- Clearly more damaged / weakened
+Notes:
 
----
+Should tile cleanly into barricades
+Damaged version must look weaker but still readable
+Explosions
+explosion_01.png / explosion_02.png / explosion_03.png
 
-## Explosions
+Path:
 
-### File
-`public/assets/sprites/effects/explosion_01.png`
+public/assets/sprites/effects/
 
-### Size
+Size:
+
 64x64 px
 
-### Description
-Explosion frame 1.
+Description:
 
----
+Three-frame pixel explosion animation.
 
-### File
-`public/assets/sprites/effects/explosion_02.png`
+Notes:
 
-### Size
-64x64 px
+Frame 1: ignition / bright flash
+Frame 2: full explosion
+Frame 3: smoke and debris
+Transparent background
+Priority Order
+Player idle
+Player fire
+UAEC Officer frame 1
+UAEC Officer frame 2
+UAEC Shield frame 1
+UAEC Shield frame 2
+UAEC Armored frame 1
+UAEC Armored frame 2
+Tank
+Player missile
+Enemy projectile
+Barricade full
+Barricade damaged
+Explosion 01
+Explosion 02
+Explosion 03
+Final Note
 
-### Description
-Explosion frame 2.
+Do not create the final sprites as one large poster sheet.
 
----
-
-### File
-`public/assets/sprites/effects/explosion_03.png`
-
-### Size
-64x64 px
-
-### Description
-Explosion frame 3.
-
----
-
-## Priority Order
-
-Create sprites in this order:
-
-1. Player idle
-2. Player fire
-3. UAEC officer frame 1
-4. UAEC officer frame 2
-5. UAEC shield frame 1
-6. UAEC shield frame 2
-7. UAEC armored frame 1
-8. UAEC armored frame 2
-9. Tank
-10. Player missile
-11. Enemy projectile
-12. Barricade full
-13. Barricade damaged
-14. Explosion 01
-15. Explosion 02
-16. Explosion 03
-
-## Final Notes
-
-These should be made as clean individual transparent PNGs.
-
-Do not create them as one large concept poster first.
-
-They should be designed for in-game readability first.
+Create each sprite as its own clean transparent PNG.
