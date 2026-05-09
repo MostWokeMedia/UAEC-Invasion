@@ -2,6 +2,7 @@ import "./style.css";
 import { COLS, HEIGHT, ROWS, TOTAL_ENEMIES, WIDTH } from "./game/constants";
 import { InputManager } from "./game/input";
 import { AudioManager } from "./game/audio";
+import { clamp, rectsOverlap } from "./game/utils";
 import type {
   BarricadeBlock,
   Direction,
@@ -913,18 +914,6 @@ class Game {
   }
 }
 
-function rectsOverlap(a: Rect, b: Rect): boolean {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
 
 const app = document.querySelector<HTMLDivElement>("#app");
 
