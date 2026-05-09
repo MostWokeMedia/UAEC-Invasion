@@ -1,5 +1,6 @@
 import { COLS, HEIGHT, ROWS, TOTAL_ENEMIES, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
+import { SpriteManager } from "./assets";
 import { InputManager } from "./input";
 import { clamp, rectsOverlap } from "./utils";
 import type {
@@ -24,7 +25,7 @@ export class Game {
   private modeTimerMs = 0;
   private playerShotCount = 0;
   private earnedNewHighScore = false;
-  private gameOverPortrait = new Image();
+  private sprites = new SpriteManager();
 
   private player: Player = {
     x: WIDTH / 2 - 24,
@@ -75,7 +76,7 @@ export class Game {
     this.ctx = ctx;
     this.input = input;
     this.audio = audio;
-    this.gameOverPortrait.src = "/assets/citadel-witness.png";
+    this.sprites.loadAll();
     this.startWave();
   }
 
@@ -1220,13 +1221,12 @@ export class Game {
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(x - 18, y - 18, size + 36, size + 36);
 
-    const imageReady =
-      this.gameOverPortrait.complete && this.gameOverPortrait.naturalWidth > 0;
+    const portrait = this.sprites.get("citadelWitness");
 
-    if (imageReady) {
+    if (portrait) {
       this.ctx.shadowColor = "rgba(255, 79, 154, 0.30)";
       this.ctx.shadowBlur = 18;
-      this.ctx.drawImage(this.gameOverPortrait, x, y, size, size);
+      this.ctx.drawImage(portrait, x, y, size, size);
       this.ctx.shadowBlur = 0;
     } else {
       this.ctx.fillStyle = "#111827";
