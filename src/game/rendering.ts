@@ -1,8 +1,8 @@
 export const PLAYER_SPRITE = {
-  width: 74,
-  height: 96,
+  width: 110,
+  height: 143,
   xOffset: 0,
-  yOffset: 6,
+  yOffset: 50,
 };
 
 export const TANK_SPRITE = {
