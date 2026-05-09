@@ -176,8 +176,8 @@ export class Game {
       this.drawWaveClearScreen();
     }
 
-    if (this.mode === "player-hit" && this.lives > 0) {
-      this.drawCenteredOverlay("CITIZEN HIT", "Repositioning...");
+    if (this.mode === "player-hit") {
+      this.drawPlayerHitScreen();
     }
   }
 
@@ -1057,6 +1057,51 @@ export class Game {
         this.ctx.fillStyle = row === 0 ? "#ff4f9a" : "#9ee7ff";
         this.ctx.fillRect(x + 5, y + 9, width - 10, 3);
       }
+    }
+  }
+
+  private drawPlayerHitScreen(): void {
+    const time = performance.now() / 1000;
+    const pulse = 0.62 + Math.sin(time * 8) * 0.28;
+
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.68)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.textAlign = "center";
+
+    this.ctx.save();
+    this.ctx.globalAlpha = pulse;
+    this.ctx.strokeStyle = "#ff355d";
+    this.ctx.lineWidth = 4;
+    this.ctx.strokeRect(70, 70, WIDTH - 140, HEIGHT - 140);
+    this.ctx.restore();
+
+    if (this.lives > 0) {
+      this.ctx.font = "54px 'Courier New', monospace";
+      this.ctx.fillStyle = "#ff4f9a";
+      this.ctx.fillText("SIGNAL DISRUPTED", WIDTH / 2, HEIGHT / 2 - 70);
+
+      this.ctx.font = "24px 'Courier New', monospace";
+      this.ctx.fillStyle = "#f5f7ff";
+      this.ctx.fillText(
+        `LIVES REMAINING: ${String(this.lives).padStart(2, "0")}`,
+        WIDTH / 2,
+        HEIGHT / 2 - 18,
+      );
+
+      this.ctx.fillStyle = "#9ee7ff";
+      this.ctx.fillText("REDEPLOYING...", WIDTH / 2, HEIGHT / 2 + 34);
+    } else {
+      this.ctx.font = "54px 'Courier New', monospace";
+      this.ctx.fillStyle = "#ff355d";
+      this.ctx.fillText("SIGNAL COLLAPSING", WIDTH / 2, HEIGHT / 2 - 70);
+
+      this.ctx.font = "24px 'Courier New', monospace";
+      this.ctx.fillStyle = "#f5f7ff";
+      this.ctx.fillText("NO LIVES REMAINING", WIDTH / 2, HEIGHT / 2 - 18);
+
+      this.ctx.fillStyle = "#ff4f9a";
+      this.ctx.fillText("TRANSMISSION ENDING...", WIDTH / 2, HEIGHT / 2 + 34);
     }
   }
 
