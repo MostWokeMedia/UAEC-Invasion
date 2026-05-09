@@ -29,6 +29,8 @@ if (!ctx) {
   throw new Error("Could not create canvas context.");
 }
 
+ctx.imageSmoothingEnabled = false;
+
 const input = new InputManager();
 const audio = new AudioManager();
 const game = new Game(ctx, input, audio);

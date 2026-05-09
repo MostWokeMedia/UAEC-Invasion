@@ -841,6 +841,35 @@ export class Game {
   private drawTank(): void {
     if (!this.tank.active) return;
 
+    const tankSprite = this.sprites.get("uaecTank");
+
+    if (tankSprite) {
+      const drawWidth = this.tank.width;
+      const drawHeight = this.tank.height + 26;
+      const drawX = this.tank.x;
+      const drawY = this.tank.y - 10;
+
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = false;
+      this.ctx.shadowColor = "rgba(255, 79, 154, 0.28)";
+      this.ctx.shadowBlur = 12;
+
+      if (this.tank.direction === -1) {
+        this.ctx.translate(drawX + drawWidth, drawY);
+        this.ctx.scale(-1, 1);
+        this.ctx.drawImage(tankSprite, 0, 0, drawWidth, drawHeight);
+      } else {
+        this.ctx.drawImage(tankSprite, drawX, drawY, drawWidth, drawHeight);
+      }
+
+      this.ctx.restore();
+      return;
+    }
+
+    this.drawPlaceholderTank();
+  }
+
+  private drawPlaceholderTank(): void {
     this.ctx.fillStyle = "#1a2233";
     this.ctx.fillRect(this.tank.x, this.tank.y + 14, this.tank.width, this.tank.height - 14);
 
