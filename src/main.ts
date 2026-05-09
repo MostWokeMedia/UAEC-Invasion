@@ -365,9 +365,11 @@ class Game {
     this.player.y = HEIGHT - 78;
     this.player.invulnerableMs = 1200;
 
+    const startingAdvance = this.getWaveStartingAdvance();
+
     this.formation = {
       xOffset: 0,
-      yAdvance: 0,
+      yAdvance: startingAdvance,
       direction: 1,
       stepTimerMs: 0,
       stepDelayMs: 900,
@@ -726,13 +728,25 @@ class Game {
   }
 
   private getFormationStepDelay(aliveCount: number): number {
-    if (aliveCount <= 1) return 90;
-    if (aliveCount <= 3) return 160;
-    if (aliveCount <= 7) return 260;
-    if (aliveCount <= 14) return 430;
-    if (aliveCount <= 21) return 600;
-    if (aliveCount <= 28) return 750;
-    return 900;
+    const wavePressure = Math.min(Math.max(this.wave - 3, 0) * 8, 80);
+
+    let baseDelay: number;
+
+    if (aliveCount <= 1) baseDelay = 90;
+    else if (aliveCount <= 3) baseDelay = 160;
+    else if (aliveCount <= 7) baseDelay = 260;
+    else if (aliveCount <= 14) baseDelay = 430;
+    else if (aliveCount <= 21) baseDelay = 600;
+    else if (aliveCount <= 28) baseDelay = 750;
+    else baseDelay = 900;
+
+    return Math.max(80, baseDelay - wavePressure);
+  }
+
+  private getWaveStartingAdvance(): number {
+    if (this.wave <= 2) return 0;
+
+    return Math.min((this.wave - 2) * 6, 72);
   }
 
   private getTankScore(): number {
