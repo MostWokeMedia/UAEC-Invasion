@@ -48,6 +48,15 @@ const SPRITE_PATHS: Record<SpriteKey, string> = {
 export class SpriteManager {
   private sprites = new Map<SpriteKey, HTMLImageElement>();
   private failedSprites = new Set<SpriteKey>();
+  private enabled = true;
+
+  get isEnabled(): boolean {
+    return this.enabled;
+  }
+
+  toggleEnabled(): void {
+    this.enabled = !this.enabled;
+  }
 
   loadAll(): void {
     for (const key of Object.keys(SPRITE_PATHS) as SpriteKey[]) {
@@ -79,6 +88,10 @@ export class SpriteManager {
   }
 
   get(key: SpriteKey): HTMLImageElement | null {
+    if (!this.enabled) {
+      return null;
+    }
+
     if (this.failedSprites.has(key)) {
       return null;
     }

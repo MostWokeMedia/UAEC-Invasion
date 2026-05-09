@@ -90,8 +90,25 @@ export class Game {
     this.ctx = ctx;
     this.input = input;
     this.audio = audio;
+    this.setupSpriteToggleHotkey();
     this.sprites.loadAll();
     this.startWave();
+  }
+
+  private setupSpriteToggleHotkey(): void {
+    window.addEventListener("keydown", (event) => {
+      const isSpriteToggle =
+        event.code === "KeyT" || event.key.toLowerCase() === "t";
+
+      if (!isSpriteToggle || event.repeat) return;
+
+      event.preventDefault();
+      this.sprites.toggleEnabled();
+
+      console.info(
+        `UAEC Invasion sprites: ${this.sprites.isEnabled ? "ON" : "OFF"}`,
+      );
+    });
   }
 
   update(dtMs: number): void {

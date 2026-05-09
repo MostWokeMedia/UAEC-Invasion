@@ -11,7 +11,9 @@ export class InputManager {
       "Space",
       "Enter",
       "KeyM",
+      "KeyT",
       "KeyP",
+      "KeyH",
       "Escape",
     ]);
 
@@ -49,6 +51,16 @@ export class InputManager {
 
     this.pressed.delete(code);
     return true;
+  }
+
+  consumeAny(...codes: string[]): boolean {
+    for (const code of codes) {
+      if (this.consume(code)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   clearPressed(): void {
