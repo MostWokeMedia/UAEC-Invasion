@@ -3,6 +3,13 @@ import { AudioManager } from "./audio";
 import { SpriteManager } from "./assets";
 import type { SpriteKey } from "./assets";
 import { InputManager } from "./input";
+import {
+  ENEMY_SPRITE,
+  EXPLOSION_SPRITE,
+  PLAYER_SPRITE,
+  PROJECTILE_SPRITE,
+  TANK_SPRITE,
+} from "./rendering";
 import { clamp, rectsOverlap } from "./utils";
 import type {
   BarricadeBlock,
@@ -480,10 +487,10 @@ export class Game {
       });
 
       this.explosions.push({
-        x: this.tank.x + this.tank.width / 2 - 55,
-        y: this.tank.y + this.tank.height / 2 - 45,
-        width: 110,
-        height: 90,
+        x: this.tank.x + this.tank.width / 2 - EXPLOSION_SPRITE.tankWidth / 2,
+        y: this.tank.y + this.tank.height / 2 - EXPLOSION_SPRITE.tankHeight / 2,
+        width: EXPLOSION_SPRITE.tankWidth,
+        height: EXPLOSION_SPRITE.tankHeight,
         lifeMs: 620,
         totalLifeMs: 620,
       });
@@ -513,10 +520,10 @@ export class Game {
         });
 
         this.explosions.push({
-          x: enemyRect.x + enemyRect.width / 2 - 24,
-          y: enemyRect.y + enemyRect.height / 2 - 24,
-          width: 48,
-          height: 48,
+          x: enemyRect.x + enemyRect.width / 2 - EXPLOSION_SPRITE.enemyWidth / 2,
+          y: enemyRect.y + enemyRect.height / 2 - EXPLOSION_SPRITE.enemyHeight / 2,
+          width: EXPLOSION_SPRITE.enemyWidth,
+          height: EXPLOSION_SPRITE.enemyHeight,
           lifeMs: 360,
           totalLifeMs: 360,
         });
@@ -550,10 +557,10 @@ export class Game {
 
       if (this.player.invulnerableMs <= 0 && rectsOverlap(projectile, this.player)) {
         this.explosions.push({
-          x: this.player.x + this.player.width / 2 - 36,
-          y: this.player.y + this.player.height / 2 - 48,
-          width: 72,
-          height: 72,
+          x: this.player.x + this.player.width / 2 - EXPLOSION_SPRITE.playerWidth / 2,
+          y: this.player.y + this.player.height / 2 - EXPLOSION_SPRITE.playerHeight / 2,
+          width: EXPLOSION_SPRITE.playerWidth,
+          height: EXPLOSION_SPRITE.playerHeight,
           lifeMs: 520,
           totalLifeMs: 520,
         });
@@ -840,10 +847,12 @@ export class Game {
     const playerSprite = this.playerFireFlashMs > 0 && firingSprite ? firingSprite : idleSprite;
 
     if (playerSprite) {
-      const drawWidth = 74;
-      const drawHeight = 96;
-      const drawX = this.player.x + this.player.width / 2 - drawWidth / 2;
-      const drawY = this.player.y + this.player.height - drawHeight + 6;
+      const drawWidth = PLAYER_SPRITE.width;
+      const drawHeight = PLAYER_SPRITE.height;
+      const drawX =
+        this.player.x + this.player.width / 2 - drawWidth / 2 + PLAYER_SPRITE.xOffset;
+      const drawY =
+        this.player.y + this.player.height - drawHeight + PLAYER_SPRITE.yOffset;
 
       this.ctx.save();
       this.ctx.imageSmoothingEnabled = false;
@@ -882,7 +891,7 @@ export class Game {
       const enemySprite = this.sprites.get(spriteKey);
 
       if (enemySprite) {
-        const bob = frame === 0 ? 0 : rect.height * 0.04;
+        const bob = frame === 0 ? 0 : rect.height * ENEMY_SPRITE.bobRatio;
 
         this.ctx.save();
         this.ctx.imageSmoothingEnabled = false;
@@ -890,10 +899,10 @@ export class Game {
         this.ctx.shadowBlur = 8;
         this.ctx.drawImage(
           enemySprite,
-          rect.x - rect.width * 0.12,
-          rect.y - rect.height * 0.18 + bob,
-          rect.width * 1.24,
-          rect.height * 1.28,
+          rect.x - rect.width * ENEMY_SPRITE.xPaddingRatio,
+          rect.y - rect.height * ENEMY_SPRITE.yTopPaddingRatio + bob,
+          rect.width * ENEMY_SPRITE.widthScale,
+          rect.height * ENEMY_SPRITE.heightScale,
         );
         this.ctx.restore();
 
@@ -1021,9 +1030,9 @@ export class Game {
 
     if (tankSprite) {
       const drawWidth = this.tank.width;
-      const drawHeight = this.tank.height + 26;
+      const drawHeight = this.tank.height + TANK_SPRITE.extraHeight;
       const drawX = this.tank.x;
-      const drawY = this.tank.y - 10;
+      const drawY = this.tank.y + TANK_SPRITE.yOffset;
 
       this.ctx.save();
       this.ctx.imageSmoothingEnabled = false;
@@ -1109,10 +1118,10 @@ export class Game {
       this.ctx.shadowBlur = 12;
       this.ctx.drawImage(
         missileSprite,
-        this.playerMissile.x - 7,
-        this.playerMissile.y - 4,
-        20,
-        34,
+        this.playerMissile.x + PROJECTILE_SPRITE.playerXOffset,
+        this.playerMissile.y + PROJECTILE_SPRITE.playerYOffset,
+        PROJECTILE_SPRITE.playerWidth,
+        PROJECTILE_SPRITE.playerHeight,
       );
       this.ctx.restore();
       return;
@@ -1141,10 +1150,10 @@ export class Game {
         this.ctx.shadowBlur = 10;
         this.ctx.drawImage(
           enemyProjectileSprite,
-          projectile.x - 5,
-          projectile.y - 3,
-          18,
-          28,
+          projectile.x + PROJECTILE_SPRITE.enemyXOffset,
+          projectile.y + PROJECTILE_SPRITE.enemyYOffset,
+          PROJECTILE_SPRITE.enemyWidth,
+          PROJECTILE_SPRITE.enemyHeight,
         );
         this.ctx.restore();
         continue;
