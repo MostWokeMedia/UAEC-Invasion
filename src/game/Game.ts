@@ -23,6 +23,8 @@ export class Game {
   private lives = 3;
   private modeTimerMs = 0;
   private playerShotCount = 0;
+  private earnedNewHighScore = false;
+  private gameOverPortrait = new Image();
 
   private player: Player = {
     x: WIDTH / 2 - 24,
@@ -73,6 +75,7 @@ export class Game {
     this.ctx = ctx;
     this.input = input;
     this.audio = audio;
+    this.gameOverPortrait.src = "/assets/citadel-witness.png";
     this.startWave();
   }
 
@@ -162,15 +165,15 @@ export class Game {
     }
 
     if (this.mode === "game-over") {
-      this.drawCenteredOverlay("GAME OVER", "Press ENTER or SPACE to restart");
+      this.drawGameOverScreen();
     }
 
     if (this.mode === "paused") {
-      this.drawCenteredOverlay("PAUSED", "Press P or ESC to resume");
+      this.drawPauseScreen();
     }
 
     if (this.mode === "wave-clear") {
-      this.drawCenteredOverlay("WAVE CLEAR", "Next wave approaching...");
+      this.drawWaveClearScreen();
     }
 
     if (this.mode === "player-hit" && this.lives > 0) {
@@ -196,6 +199,7 @@ export class Game {
     this.score = 0;
     this.wave = 1;
     this.lives = 3;
+    this.earnedNewHighScore = false;
     this.mode = "playing";
     this.playerShotCount = 0;
     this.startWave();
@@ -610,6 +614,7 @@ export class Game {
     this.score += points;
 
     if (this.score > this.highScore) {
+      this.earnedNewHighScore = true;
       this.highScore = this.score;
       localStorage.setItem("uaec-invasion-high-score", String(this.highScore));
     }
@@ -1053,6 +1058,146 @@ export class Game {
         this.ctx.fillRect(x + 5, y + 9, width - 10, 3);
       }
     }
+  }
+
+  private drawPauseScreen(): void {
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.74)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.textAlign = "center";
+
+    this.ctx.font = "60px 'Courier New', monospace";
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText("PAUSED", WIDTH / 2, HEIGHT / 2 - 52);
+
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, HEIGHT / 2 + 4);
+
+    this.ctx.font = "20px 'Courier New', monospace";
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText("PRESS P OR ESC TO RESUME", WIDTH / 2, HEIGHT / 2 + 54);
+  }
+
+  private drawWaveClearScreen(): void {
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.70)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.textAlign = "center";
+
+    this.ctx.font = "58px 'Courier New', monospace";
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText("WAVE CLEARED", WIDTH / 2, HEIGHT / 2 - 44);
+
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText("UAEC FORMATION BROKEN.", WIDTH / 2, HEIGHT / 2 + 10);
+
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("NEXT WAVE INCOMING..", WIDTH / 2, HEIGHT / 2 + 46);
+  }
+
+  private drawGameOverScreen(): void {
+    const time = performance.now() / 1000;
+    const promptPulse = 0.62 + Math.sin(time * 4.2) * 0.28;
+    const newHighFlash = 0.75 + Math.sin(time * 6.5) * 0.25;
+
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.textAlign = "center";
+
+    this.ctx.font = "62px 'Courier New', monospace";
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText("SIGNAL LOST", WIDTH / 2, 88);
+
+    if (this.earnedNewHighScore) {
+      this.ctx.save();
+      this.ctx.globalAlpha = newHighFlash;
+      this.ctx.font = "26px 'Courier New', monospace";
+      this.ctx.fillStyle = "#fff7d6";
+      this.ctx.fillText("NEW HIGH SCORE", WIDTH / 2, 128);
+      this.ctx.restore();
+    }
+
+    const panelX = WIDTH / 2 - 210;
+    const panelY = 150;
+    const panelW = 420;
+    const panelH = 112;
+
+    this.ctx.fillStyle = "rgba(3, 4, 10, 0.78)";
+    this.ctx.fillRect(panelX, panelY, panelW, panelH);
+
+    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.72)";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(panelX, panelY, panelW, panelH);
+
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText(`FINAL SCORE: ${String(this.score).padStart(6, "0")}`, WIDTH / 2, panelY + 34);
+
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText(`HIGH SCORE: ${String(this.highScore).padStart(6, "0")}`, WIDTH / 2, panelY + 66);
+
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText(`WAVE REACHED: ${String(this.wave).padStart(2, "0")}`, WIDTH / 2, panelY + 98);
+
+    this.drawGameOverPortrait();
+
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText("THE CITADEL HAS WITNESSED", WIDTH / 2, 594);
+
+    this.ctx.save();
+    this.ctx.globalAlpha = promptPulse;
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#fff7d6";
+    this.ctx.fillText("PRESS ENTER OR SPACE TO REDEPLOY", WIDTH / 2, 640);
+    this.ctx.restore();
+  }
+
+  private drawGameOverPortrait(): void {
+    const time = performance.now() / 1000;
+    const bob = Math.sin(time * 1.8) * 5;
+    const flicker = Math.sin(time * 12) > 0.96 ? 0.82 : 1;
+
+    const size = 190;
+    const x = WIDTH / 2 - size / 2;
+    const y = 316 + bob;
+
+    this.ctx.save();
+    this.ctx.globalAlpha = flicker;
+
+    this.ctx.fillStyle = "rgba(3, 4, 10, 0.78)";
+    this.ctx.fillRect(x - 18, y - 18, size + 36, size + 36);
+
+    this.ctx.strokeStyle = "rgba(158, 231, 255, 0.45)";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(x - 18, y - 18, size + 36, size + 36);
+
+    const imageReady =
+      this.gameOverPortrait.complete && this.gameOverPortrait.naturalWidth > 0;
+
+    if (imageReady) {
+      this.ctx.shadowColor = "rgba(255, 79, 154, 0.30)";
+      this.ctx.shadowBlur = 18;
+      this.ctx.drawImage(this.gameOverPortrait, x, y, size, size);
+      this.ctx.shadowBlur = 0;
+    } else {
+      this.ctx.fillStyle = "#111827";
+      this.ctx.fillRect(x, y, size, size);
+
+      this.ctx.strokeStyle = "#f5f7ff";
+      this.ctx.strokeRect(x, y, size, size);
+
+      this.ctx.fillStyle = "#f5f7ff";
+      this.ctx.font = "16px 'Courier New', monospace";
+      this.ctx.textAlign = "center";
+      this.ctx.fillText("PORTRAIT", WIDTH / 2, y + 88);
+      this.ctx.fillText("MISSING", WIDTH / 2, y + 110);
+    }
+
+    this.ctx.restore();
   }
 
   private drawCenteredOverlay(title: string, subtitle: string): void {
