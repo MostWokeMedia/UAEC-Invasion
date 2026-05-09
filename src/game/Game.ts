@@ -1245,22 +1245,4 @@ export class Game {
     this.ctx.restore();
   }
 
-  private drawCenteredOverlay(title: string, subtitle: string): void {
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.68)";
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-    this.ctx.textAlign = "center";
-
-    this.ctx.font = "64px 'Courier New', monospace";
-    this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText(title, WIDTH / 2, HEIGHT / 2 - 36);
-
-    this.ctx.font = "22px 'Courier New', monospace";
-    this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText(subtitle, WIDTH / 2, HEIGHT / 2 + 18);
-
-    this.ctx.font = "16px 'Courier New', monospace";
-    this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("A/D or ←/→ to move    SPACE to fire    P/ESC to pause    M to mute", WIDTH / 2, HEIGHT / 2 + 58);
-  }
 }
