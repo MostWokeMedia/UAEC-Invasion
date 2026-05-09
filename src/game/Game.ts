@@ -919,7 +919,7 @@ export class Game {
         this.ctx.shadowBlur = 8;
         this.ctx.drawImage(
           enemySprite,
-          rect.x - rect.width * ENEMY_SPRITE.xPaddingRatio,
+          rect.x - rect.width * ENEMY_SPRITE.xPaddingRatio + ENEMY_SPRITE.xOffset,
           rect.y - rect.height * ENEMY_SPRITE.yTopPaddingRatio + bob,
           rect.width * ENEMY_SPRITE.widthScale,
           rect.height * ENEMY_SPRITE.heightScale,

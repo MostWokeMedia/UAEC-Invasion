@@ -11,11 +11,12 @@ export const TANK_SPRITE = {
 };
 
 export const ENEMY_SPRITE = {
-  xPaddingRatio: 0.12,
-  yTopPaddingRatio: 0.18,
-  widthScale: 1.24,
-  heightScale: 1.28,
+  xPaddingRatio: 0.8,
+  yTopPaddingRatio: 0.14,
+  widthScale: 1.42,
+  heightScale: 1.48,
   bobRatio: 0.04,
+  xOffset: 13,
 };
 
 export const PROJECTILE_SPRITE = {
