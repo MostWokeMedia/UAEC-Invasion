@@ -158,7 +158,7 @@ export class Game {
     this.drawHud();
 
     if (this.mode === "start") {
-      this.drawCenteredOverlay("UAEC INVASION", "Press ENTER or SPACE to start");
+      this.drawStartScreen();
     }
 
     if (this.mode === "game-over") {
@@ -890,6 +890,168 @@ export class Game {
 
     for (const floatingText of this.floatingTexts) {
       this.ctx.fillText(floatingText.text, floatingText.x, floatingText.y);
+    }
+  }
+
+  private drawStartScreen(): void {
+    const time = performance.now() / 1000;
+    const titleFlicker = Math.sin(time * 18) > 0.92 ? 0.68 : 1;
+    const promptPulse = 0.62 + Math.sin(time * 4.2) * 0.28;
+    const stepFrame = Math.floor(time * 2.2) % 2;
+
+    this.ctx.save();
+
+    const gradient = this.ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    gradient.addColorStop(0, "#03040c");
+    gradient.addColorStop(0.42, "#071020");
+    gradient.addColorStop(1, "#020207");
+
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.fillStyle = "rgba(255, 79, 154, 0.10)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.strokeStyle = "rgba(100, 210, 255, 0.16)";
+    this.ctx.lineWidth = 2;
+
+    for (let i = 0; i < 18; i++) {
+      const x = 90 + i * 52;
+      this.ctx.beginPath();
+      this.ctx.moveTo(WIDTH / 2, 205);
+      this.ctx.lineTo(x - 220, HEIGHT);
+      this.ctx.stroke();
+    }
+
+    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.22)";
+    for (let y = 250; y < HEIGHT; y += 54) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(90, y);
+      this.ctx.lineTo(WIDTH - 90, y + 18);
+      this.ctx.stroke();
+    }
+
+    this.ctx.fillStyle = "rgba(10, 15, 30, 0.92)";
+    this.ctx.fillRect(WIDTH / 2 - 66, 72, 132, 180);
+
+    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.55)";
+    this.ctx.strokeRect(WIDTH / 2 - 66, 72, 132, 180);
+
+    this.ctx.fillStyle = "rgba(158, 231, 255, 0.16)";
+    this.ctx.fillRect(WIDTH / 2 - 36, 104, 72, 18);
+    this.ctx.fillRect(WIDTH / 2 - 44, 144, 88, 12);
+    this.ctx.fillRect(WIDTH / 2 - 28, 184, 56, 14);
+
+    this.ctx.fillStyle = "rgba(255, 79, 154, 0.15)";
+    this.ctx.font = "20px 'Courier New', monospace";
+    this.ctx.textAlign = "center";
+    this.ctx.fillText("THE CITADEL", WIDTH / 2, 286);
+
+    this.ctx.globalAlpha = 0.42;
+    this.drawTitleEnemySilhouettes(stepFrame);
+    this.ctx.globalAlpha = 1;
+
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.48)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    this.ctx.textAlign = "center";
+
+    this.ctx.globalAlpha = titleFlicker;
+    this.ctx.font = "76px 'Courier New', monospace";
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText("UAEC", WIDTH / 2, 124);
+
+    this.ctx.font = "72px 'Courier New', monospace";
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText("INVASION", WIDTH / 2, 194);
+
+    this.ctx.strokeStyle = "#9ee7ff";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeText("INVASION", WIDTH / 2, 194);
+    this.ctx.globalAlpha = 1;
+
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("THE CITADEL IS UNDER LOCKDOWN.", WIDTH / 2, 258);
+
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText("THE UAEC ARE ADVANCING.", WIDTH / 2, 292);
+
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText("HOLD THE LINE.", WIDTH / 2, 326);
+
+    this.ctx.globalAlpha = promptPulse;
+    this.ctx.font = "28px 'Courier New', monospace";
+    this.ctx.fillStyle = "#fff7d6";
+    this.ctx.fillText("PRESS ENTER OR SPACE", WIDTH / 2, 390);
+    this.ctx.globalAlpha = 1;
+
+    const panelX = WIDTH / 2 - 235;
+    const panelY = 425;
+    const panelW = 470;
+    const panelH = 152;
+
+    this.ctx.fillStyle = "rgba(3, 4, 10, 0.78)";
+    this.ctx.fillRect(panelX, panelY, panelW, panelH);
+
+    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.72)";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(panelX, panelY, panelW, panelH);
+
+    this.ctx.font = "18px 'Courier New', monospace";
+    this.ctx.textAlign = "left";
+
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("A/D or ←/→", panelX + 48, panelY + 42);
+    this.ctx.fillText("SPACE", panelX + 48, panelY + 76);
+    this.ctx.fillText("P/ESC", panelX + 48, panelY + 110);
+    this.ctx.fillText("M", panelX + 48, panelY + 134);
+
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText("MOVE", panelX + 278, panelY + 42);
+    this.ctx.fillText("FIRE", panelX + 278, panelY + 76);
+    this.ctx.fillText("PAUSE", panelX + 278, panelY + 110);
+    this.ctx.fillText(this.audio.isMuted ? "UNMUTE" : "MUTE", panelX + 278, panelY + 134);
+
+    this.ctx.textAlign = "center";
+    this.ctx.font = "20px 'Courier New', monospace";
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.fillText(
+      `HIGH SCORE: ${String(this.highScore).padStart(6, "0")}`,
+      WIDTH / 2,
+      620,
+    );
+
+    this.ctx.font = "18px 'Courier New', monospace";
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, 664);
+
+    this.ctx.globalAlpha = 0.12;
+    this.ctx.fillStyle = "#f5f7ff";
+    for (let y = 0; y < HEIGHT; y += 4) {
+      this.ctx.fillRect(0, y, WIDTH, 1);
+    }
+
+    this.ctx.restore();
+  }
+
+  private drawTitleEnemySilhouettes(stepFrame: number): void {
+    const baseY = 484;
+    const bob = stepFrame === 0 ? 0 : 6;
+
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 9; col++) {
+        const x = 210 + col * 68 + (row % 2) * 10;
+        const y = baseY + row * 42 + bob;
+        const width = row === 0 ? 34 : row === 1 ? 30 : 26;
+        const height = row === 0 ? 28 : row === 1 ? 24 : 22;
+
+        this.ctx.fillStyle = row === 0 ? "#30394f" : "#151d2d";
+        this.ctx.fillRect(x, y, width, height);
+
+        this.ctx.fillStyle = row === 0 ? "#ff4f9a" : "#9ee7ff";
+        this.ctx.fillRect(x + 5, y + 9, width - 10, 3);
+      }
     }
   }
 
