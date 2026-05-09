@@ -100,6 +100,7 @@ export class Game {
       this.audio.toggleMute();
     }
 
+
     const pausePressed = this.input.consume("KeyP") || this.input.consume("Escape");
 
     if (pausePressed && this.mode === "playing") {
@@ -835,6 +836,7 @@ export class Game {
     this.ctx.font = "16px 'Courier New', monospace";
     this.ctx.fillStyle = this.audio.isMuted ? "#ff4f9a" : "#9ee7ff";
     this.ctx.fillText(this.audio.isMuted ? "MUTED [M]" : "AUDIO [M]", 810, 92);
+
   }
 
   private drawPlayer(): void {
