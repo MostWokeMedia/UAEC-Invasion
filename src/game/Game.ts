@@ -899,21 +899,64 @@ export class Game {
   }
 
   private drawProjectiles(): void {
-    if (this.playerMissile) {
-      this.ctx.fillStyle = "#fff7d6";
-      this.ctx.fillRect(
-        this.playerMissile.x,
-        this.playerMissile.y,
-        this.playerMissile.width,
-        this.playerMissile.height,
-      );
+    this.drawPlayerMissile();
+    this.drawEnemyProjectiles();
+  }
 
-      this.ctx.fillStyle = "#ff7a3d";
-      this.ctx.fillRect(this.playerMissile.x - 2, this.playerMissile.y + 14, 10, 8);
+  private drawPlayerMissile(): void {
+    if (!this.playerMissile) return;
+
+    const missileSprite = this.sprites.get("playerMissile");
+
+    if (missileSprite) {
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = false;
+      this.ctx.shadowColor = "rgba(255, 122, 61, 0.45)";
+      this.ctx.shadowBlur = 12;
+      this.ctx.drawImage(
+        missileSprite,
+        this.playerMissile.x - 7,
+        this.playerMissile.y - 4,
+        20,
+        34,
+      );
+      this.ctx.restore();
+      return;
     }
 
-    this.ctx.fillStyle = "#ff355d";
+    this.ctx.fillStyle = "#fff7d6";
+    this.ctx.fillRect(
+      this.playerMissile.x,
+      this.playerMissile.y,
+      this.playerMissile.width,
+      this.playerMissile.height,
+    );
+
+    this.ctx.fillStyle = "#ff7a3d";
+    this.ctx.fillRect(this.playerMissile.x - 2, this.playerMissile.y + 14, 10, 8);
+  }
+
+  private drawEnemyProjectiles(): void {
+    const enemyProjectileSprite = this.sprites.get("enemyProjectile");
+
     for (const projectile of this.enemyProjectiles) {
+      if (enemyProjectileSprite) {
+        this.ctx.save();
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.shadowColor = "rgba(255, 53, 93, 0.45)";
+        this.ctx.shadowBlur = 10;
+        this.ctx.drawImage(
+          enemyProjectileSprite,
+          projectile.x - 5,
+          projectile.y - 3,
+          18,
+          28,
+        );
+        this.ctx.restore();
+        continue;
+      }
+
+      this.ctx.fillStyle = "#ff355d";
       this.ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
     }
   }
