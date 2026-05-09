@@ -41,6 +41,7 @@ export class Game {
   private playerMissile: Projectile | null = null;
   private enemyProjectiles: Projectile[] = [];
   private floatingTexts: FloatingText[] = [];
+  private playerFireFlashMs = 0;
 
   private formation = {
     xOffset: 0,
@@ -184,6 +185,7 @@ export class Game {
 
   private updatePlaying(dtMs: number): void {
     this.player.invulnerableMs = Math.max(0, this.player.invulnerableMs - dtMs);
+    this.playerFireFlashMs = Math.max(0, this.playerFireFlashMs - dtMs);
 
     this.updatePlayer(dtMs);
     this.updatePlayerShooting();
@@ -324,6 +326,7 @@ export class Game {
       speedY: -285,
     };
 
+    this.playerFireFlashMs = 140;
     this.audio.playShoot();
   }
 
@@ -750,6 +753,29 @@ export class Game {
       return;
     }
 
+    const firingSprite = this.sprites.get("playerFire");
+    const idleSprite = this.sprites.get("playerIdle");
+    const playerSprite = this.playerFireFlashMs > 0 && firingSprite ? firingSprite : idleSprite;
+
+    if (playerSprite) {
+      const drawWidth = 74;
+      const drawHeight = 96;
+      const drawX = this.player.x + this.player.width / 2 - drawWidth / 2;
+      const drawY = this.player.y + this.player.height - drawHeight + 6;
+
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = false;
+      this.ctx.shadowColor = "rgba(158, 231, 255, 0.28)";
+      this.ctx.shadowBlur = 10;
+      this.ctx.drawImage(playerSprite, drawX, drawY, drawWidth, drawHeight);
+      this.ctx.restore();
+      return;
+    }
+
+    this.drawPlaceholderPlayer();
+  }
+
+  private drawPlaceholderPlayer(): void {
     this.ctx.fillStyle = "#202838";
     this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
 
@@ -759,7 +785,7 @@ export class Game {
     this.ctx.fillStyle = "#c9d3e8";
     this.ctx.fillRect(this.player.x + this.player.width / 2 - 6, this.player.y - 48, 12, 46);
 
-    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillStyle = this.playerFireFlashMs > 0 ? "#fff7d6" : "#ff4f9a";
     this.ctx.fillRect(this.player.x + 14, this.player.y - 30, 20, 5);
   }
 
