@@ -56,3 +56,12 @@ export type FloatingText = {
   y: number;
   lifeMs: number;
 };
+
+export type Explosion = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  lifeMs: number;
+  totalLifeMs: number;
+};

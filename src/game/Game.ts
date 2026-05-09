@@ -9,6 +9,7 @@ import type {
   Direction,
   Enemy,
   EnemyType,
+  Explosion,
   FloatingText,
   GameMode,
   Player,
@@ -42,6 +43,7 @@ export class Game {
   private playerMissile: Projectile | null = null;
   private enemyProjectiles: Projectile[] = [];
   private floatingTexts: FloatingText[] = [];
+  private explosions: Explosion[] = [];
   private playerFireFlashMs = 0;
 
   private formation = {
@@ -134,6 +136,7 @@ export class Game {
         }
       }
       this.updateFloatingTexts(dtMs);
+      this.updateExplosions(dtMs);
       return;
     }
 
@@ -159,6 +162,7 @@ export class Game {
     this.drawEnemies();
     this.drawBarricades();
     this.drawProjectiles();
+    this.drawExplosions();
     this.drawPlayer();
     this.drawFloatingTexts();
     this.drawHud();
@@ -196,6 +200,7 @@ export class Game {
     this.updateProjectiles(dtMs);
     this.handleCollisions();
     this.updateFloatingTexts(dtMs);
+    this.updateExplosions(dtMs);
     this.checkWaveAndLossConditions();
   }
 
@@ -215,6 +220,7 @@ export class Game {
     this.playerMissile = null;
     this.enemyProjectiles = [];
     this.floatingTexts = [];
+    this.explosions = [];
 
     this.player.x = WIDTH / 2 - this.player.width / 2;
     this.player.y = HEIGHT - 78;
@@ -463,6 +469,15 @@ export class Game {
         lifeMs: 900,
       });
 
+      this.explosions.push({
+        x: this.tank.x + this.tank.width / 2 - 55,
+        y: this.tank.y + this.tank.height / 2 - 45,
+        width: 110,
+        height: 90,
+        lifeMs: 620,
+        totalLifeMs: 620,
+      });
+
       this.playerMissile = null;
       this.tank.active = false;
       this.tank.spawnTimerMs = 21000 + Math.random() * 9000;
@@ -483,6 +498,15 @@ export class Game {
           x: enemyRect.x + enemyRect.width / 2,
           y: enemyRect.y,
           lifeMs: 650,
+        });
+
+        this.explosions.push({
+          x: enemyRect.x + enemyRect.width / 2 - 24,
+          y: enemyRect.y + enemyRect.height / 2 - 24,
+          width: 48,
+          height: 48,
+          lifeMs: 360,
+          totalLifeMs: 360,
         });
 
         this.playerMissile = null;
@@ -511,6 +535,15 @@ export class Game {
       if (projectileConsumed) continue;
 
       if (this.player.invulnerableMs <= 0 && rectsOverlap(projectile, this.player)) {
+        this.explosions.push({
+          x: this.player.x + this.player.width / 2 - 36,
+          y: this.player.y + this.player.height / 2 - 48,
+          width: 72,
+          height: 72,
+          lifeMs: 520,
+          totalLifeMs: 520,
+        });
+
         this.lives--;
         this.enemyProjectiles = [];
         this.playerMissile = null;
@@ -662,6 +695,14 @@ export class Game {
       width: right - left,
       height: bottom - top,
     };
+  }
+
+  private updateExplosions(dtMs: number): void {
+    for (const explosion of this.explosions) {
+      explosion.lifeMs -= dtMs;
+    }
+
+    this.explosions = this.explosions.filter((explosion) => explosion.lifeMs > 0);
   }
 
   private updateFloatingTexts(dtMs: number): void {
@@ -1072,6 +1113,53 @@ export class Game {
       this.ctx.fillStyle = "#ff355d";
       this.ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
     }
+  }
+
+  private drawExplosions(): void {
+    for (const explosion of this.explosions) {
+      const progress = 1 - explosion.lifeMs / explosion.totalLifeMs;
+      const spriteKey =
+        progress < 0.34 ? "explosion1" : progress < 0.67 ? "explosion2" : "explosion3";
+      const sprite = this.sprites.get(spriteKey);
+
+      if (sprite) {
+        this.ctx.save();
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.globalAlpha = Math.max(0, explosion.lifeMs / explosion.totalLifeMs);
+        this.ctx.drawImage(sprite, explosion.x, explosion.y, explosion.width, explosion.height);
+        this.ctx.restore();
+        continue;
+      }
+
+      this.drawPlaceholderExplosion(explosion, progress);
+    }
+  }
+
+  private drawPlaceholderExplosion(explosion: Explosion, progress: number): void {
+    const centerX = explosion.x + explosion.width / 2;
+    const centerY = explosion.y + explosion.height / 2;
+    const alpha = Math.max(0, explosion.lifeMs / explosion.totalLifeMs);
+    const radius = 8 + progress * Math.max(explosion.width, explosion.height) * 0.42;
+
+    this.ctx.save();
+    this.ctx.globalAlpha = alpha;
+
+    this.ctx.fillStyle = "#fff7d6";
+    this.ctx.fillRect(centerX - 6, centerY - 6, 12, 12);
+
+    this.ctx.fillStyle = "#ff7a3d";
+    this.ctx.fillRect(centerX - radius * 0.9, centerY - 4, 14, 8);
+    this.ctx.fillRect(centerX + radius * 0.55, centerY - 4, 14, 8);
+    this.ctx.fillRect(centerX - 4, centerY - radius * 0.75, 8, 14);
+    this.ctx.fillRect(centerX - 4, centerY + radius * 0.55, 8, 14);
+
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillRect(centerX - radius * 0.55, centerY - radius * 0.45, 12, 12);
+    this.ctx.fillRect(centerX + radius * 0.35, centerY - radius * 0.38, 12, 12);
+    this.ctx.fillRect(centerX - radius * 0.35, centerY + radius * 0.32, 12, 12);
+    this.ctx.fillRect(centerX + radius * 0.18, centerY + radius * 0.38, 12, 12);
+
+    this.ctx.restore();
   }
 
   private drawFloatingTexts(): void {
