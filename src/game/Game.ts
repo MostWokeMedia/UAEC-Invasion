@@ -45,6 +45,8 @@ export class Game {
   private floatingTexts: FloatingText[] = [];
   private explosions: Explosion[] = [];
   private playerFireFlashMs = 0;
+  private screenShakeMs = 0;
+  private screenShakeStrength = 0;
 
   private formation = {
     xOffset: 0,
@@ -85,6 +87,8 @@ export class Game {
   }
 
   update(dtMs: number): void {
+    this.updateScreenShake(dtMs);
+
     if (this.input.consume("KeyM")) {
       this.audio.toggleMute();
     }
@@ -157,6 +161,9 @@ export class Game {
   }
 
   render(): void {
+    this.ctx.save();
+    this.applyScreenShake();
+
     this.drawBackground();
     this.drawTank();
     this.drawEnemies();
@@ -186,6 +193,8 @@ export class Game {
     if (this.mode === "player-hit") {
       this.drawPlayerHitScreen();
     }
+
+    this.ctx.restore();
   }
 
   private updatePlaying(dtMs: number): void {
@@ -478,6 +487,8 @@ export class Game {
         totalLifeMs: 620,
       });
 
+      this.triggerScreenShake(360, 10);
+
       this.playerMissile = null;
       this.tank.active = false;
       this.tank.spawnTimerMs = 21000 + Math.random() * 9000;
@@ -508,6 +519,8 @@ export class Game {
           lifeMs: 360,
           totalLifeMs: 360,
         });
+
+        this.triggerScreenShake(90, 2.5);
 
         this.playerMissile = null;
         this.audio.playEnemyHit();
@@ -543,6 +556,8 @@ export class Game {
           lifeMs: 520,
           totalLifeMs: 520,
         });
+
+        this.triggerScreenShake(520, 14);
 
         this.lives--;
         this.enemyProjectiles = [];
@@ -695,6 +710,30 @@ export class Game {
       width: right - left,
       height: bottom - top,
     };
+  }
+
+  private updateScreenShake(dtMs: number): void {
+    this.screenShakeMs = Math.max(0, this.screenShakeMs - dtMs);
+
+    if (this.screenShakeMs === 0) {
+      this.screenShakeStrength = 0;
+    }
+  }
+
+  private triggerScreenShake(durationMs: number, strength: number): void {
+    this.screenShakeMs = Math.max(this.screenShakeMs, durationMs);
+    this.screenShakeStrength = Math.max(this.screenShakeStrength, strength);
+  }
+
+  private applyScreenShake(): void {
+    if (this.screenShakeMs <= 0 || this.screenShakeStrength <= 0) return;
+
+    const decay = this.screenShakeMs / 520;
+    const currentStrength = this.screenShakeStrength * Math.min(1, decay);
+    const offsetX = (Math.random() - 0.5) * currentStrength * 2;
+    const offsetY = (Math.random() - 0.5) * currentStrength * 2;
+
+    this.ctx.translate(offsetX, offsetY);
   }
 
   private updateExplosions(dtMs: number): void {
