@@ -42,7 +42,7 @@ export class AudioManager {
     this.sfxMuted = !this.sfxMuted;
 
     if (this.sfxGain) {
-      this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.18;
+      this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.28;
     }
   }
 
@@ -103,7 +103,7 @@ export class AudioManager {
 
     this.context = new AudioContextConstructor();
     this.sfxGain = this.context.createGain();
-    this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.18;
+    this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.28;
     this.sfxGain.connect(this.context.destination);
 
     if (this.context.state === "suspended") {
@@ -120,7 +120,7 @@ export class AudioManager {
     const music = new Audio("/assets/audio/music_loop.mp3");
 
     music.loop = true;
-    music.volume = 0.28;
+    music.volume = 0.12;
     music.muted = this.musicMuted;
 
     music.addEventListener("error", () => {
