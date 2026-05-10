@@ -39,6 +39,7 @@ export class Game {
   private playerShotCount = 0;
   private earnedNewHighScore = false;
   private sprites = new SpriteManager();
+  private spriteRenderCache = new Map<string, HTMLCanvasElement>();
 
   private player: Player = {
     x: WIDTH / 2 - 24,
@@ -1004,6 +1005,44 @@ private drawGameplayReadabilityVeil(): void {
     this.ctx.fillRect(this.player.x + 14, this.player.y - 30, 20, 5);
   }
 
+  private drawCachedImage(
+    cacheKeyBase: string,
+    image: HTMLImageElement,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): void {
+    const drawWidth = Math.max(1, Math.round(width));
+    const drawHeight = Math.max(1, Math.round(height));
+    const cacheKey = `${cacheKeyBase}:${drawWidth}x${drawHeight}`;
+
+    let cachedCanvas = this.spriteRenderCache.get(cacheKey);
+
+    if (!cachedCanvas) {
+      cachedCanvas = document.createElement("canvas");
+      cachedCanvas.width = drawWidth;
+      cachedCanvas.height = drawHeight;
+
+      const cachedCtx = cachedCanvas.getContext("2d");
+
+      if (!cachedCtx) return;
+
+      cachedCtx.imageSmoothingEnabled = false;
+      cachedCtx.drawImage(image, 0, 0, drawWidth, drawHeight);
+
+      this.spriteRenderCache.set(cacheKey, cachedCanvas);
+    }
+
+    this.ctx.drawImage(
+      cachedCanvas,
+      Math.round(x),
+      Math.round(y),
+      drawWidth,
+      drawHeight,
+    );
+  }
+
   private drawEnemies(): void {
   const frame = this.formation.animationFrame;
 
@@ -1051,12 +1090,18 @@ private drawGameplayReadabilityVeil(): void {
 
       // Slightly dimmer neon rim pass.
       this.ctx.globalAlpha = 0.72;
-      this.ctx.drawImage(enemySprite, drawX, drawY, drawWidth, drawHeight);
+        this.drawCachedImage(
+          spriteKey,
+          enemySprite,
+          drawX,
+          drawY,
+          drawWidth,
+          drawHeight,
+        );
 
       // Crisp readable sprite pass.
       this.ctx.globalAlpha = 1;
       this.ctx.filter = "brightness(1.17) contrast(1.13) saturate(1.05)";
-      this.ctx.drawImage(enemySprite, drawX, drawY, drawWidth, drawHeight);
 
       this.ctx.filter = "none";
       this.ctx.restore();
