@@ -986,32 +986,70 @@ export class Game {
   }
 
   private drawHud(): void {
-    this.ctx.font = "24px 'Courier New', monospace";
+    this.ctx.save();
+
+    // Top HUD panel.
+    this.ctx.fillStyle = "rgba(2, 3, 10, 0.78)";
+    this.ctx.fillRect(0, 0, WIDTH, 86);
+
+    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.65)";
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, 86);
+    this.ctx.lineTo(WIDTH, 86);
+    this.ctx.stroke();
+
+    // Subtle inner glow line.
+    this.ctx.strokeStyle = "rgba(158, 231, 255, 0.25)";
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, 82);
+    this.ctx.lineTo(WIDTH, 82);
+    this.ctx.stroke();
+
     this.ctx.textAlign = "left";
+
+    // Labels.
+    this.ctx.font = "15px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("SCORE", 28, 26);
+    this.ctx.fillText("HI-SCORE", 224, 26);
+    this.ctx.fillText("WAVE", 454, 26);
+    this.ctx.fillText("LIVES", 610, 26);
+
+    // Values.
+    this.ctx.font = "28px 'Courier New', monospace";
+
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("SCORE", 28, 34);
-    this.ctx.fillText("HI-SCORE", 286, 34);
-    this.ctx.fillText(`WAVE ${String(this.wave).padStart(2, "0")}`, 620, 34);
+    this.ctx.fillText(String(this.score).padStart(6, "0"), 28, 62);
+
+    this.ctx.fillStyle = "#fff7d6";
+    this.ctx.fillText(String(this.highScore).padStart(6, "0"), 224, 62);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText(String(this.score).padStart(6, "0"), 28, 64);
-    this.ctx.fillText(String(this.highScore).padStart(6, "0"), 286, 64);
+    this.ctx.fillText(String(this.wave).padStart(2, "0"), 454, 62);
 
-    this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("LIVES", 810, 34);
-
+    // Lives as small player/launcher icons.
     for (let i = 0; i < this.lives; i++) {
+      const x = 612 + i * 38;
+      const y = 45;
+
+      this.ctx.fillStyle = "#202838";
+      this.ctx.fillRect(x, y + 10, 24, 18);
+
+      this.ctx.fillStyle = "#9ee7ff";
+      this.ctx.fillRect(x + 7, y, 10, 12);
+
       this.ctx.fillStyle = "#ff4f9a";
-      this.ctx.fillRect(812 + i * 36, 48, 24, 18);
-      this.ctx.fillStyle = "#111827";
-      this.ctx.fillRect(818 + i * 36, 54, 4, 4);
-      this.ctx.fillRect(828 + i * 36, 54, 4, 4);
+      this.ctx.fillRect(x + 3, y + 6, 18, 4);
     }
 
-    this.ctx.font = "16px 'Courier New', monospace";
+    // Audio indicator.
+    this.ctx.textAlign = "right";
+    this.ctx.font = "15px 'Courier New', monospace";
     this.ctx.fillStyle = this.audio.isMuted ? "#ff4f9a" : "#9ee7ff";
-    this.ctx.fillText(this.audio.isMuted ? "MUTED [M]" : "AUDIO [M]", 810, 92);
+    this.ctx.fillText(this.audio.isMuted ? "MUTED [M]" : "AUDIO [M]", WIDTH - 28, 26);
 
+    this.ctx.restore();
   }
 
   private drawPlayer(): void {
