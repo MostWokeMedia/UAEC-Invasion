@@ -34,8 +34,19 @@ export class AudioManager {
   }
 
   playHeartbeat(aliveCount: number): void {
-    const frequency = aliveCount <= 7 ? 88 : aliveCount <= 14 ? 74 : 62;
-    this.playTone(frequency, 0.085, "sawtooth", 0.11);
+    const bassFrequency =
+      aliveCount <= 3 ? 104 : aliveCount <= 7 ? 92 : aliveCount <= 14 ? 78 : 64;
+
+    const clickFrequency =
+      aliveCount <= 7 ? 190 : aliveCount <= 14 ? 160 : 132;
+
+    // Low mechanical march thump.
+    this.playTone(bassFrequency, 0.105, "sawtooth", 0.13);
+
+    // Short higher click layered after the thump, like a servo/boot step.
+    setTimeout(() => {
+      this.playTone(clickFrequency, 0.035, "square", 0.045);
+    }, 42);
   }
 
   playShoot(): void {
