@@ -1,35 +1,48 @@
 export class AudioManager {
   private context: AudioContext | null = null;
-  private masterGain: GainNode | null = null;
-  private muted = false;
+  private sfxGain: GainNode | null = null;
+  private music: HTMLAudioElement | null = null;
 
-  get isMuted(): boolean {
-    return this.muted;
+  private musicMuted = false;
+  private sfxMuted = false;
+  private musicLoadFailed = false;
+
+  get isMusicMuted(): boolean {
+    return this.musicMuted;
+  }
+
+  get isSfxMuted(): boolean {
+    return this.sfxMuted;
+  }
+
+  get hasMusic(): boolean {
+    return this.music !== null && !this.musicLoadFailed;
   }
 
   initialize(): void {
-    if (this.context) return;
-
-    const AudioContextConstructor =
-      window.AudioContext ||
-      (
-        window as Window &
-          typeof globalThis & { webkitAudioContext?: typeof AudioContext }
-      ).webkitAudioContext;
-
-    if (!AudioContextConstructor) return;
-
-    this.context = new AudioContextConstructor();
-    this.masterGain = this.context.createGain();
-    this.masterGain.gain.value = this.muted ? 0 : 0.18;
-    this.masterGain.connect(this.context.destination);
+    this.initializeSfx();
+    this.initializeMusic();
   }
 
-  toggleMute(): void {
-    this.muted = !this.muted;
+  toggleMusicMute(): void {
+    this.musicMuted = !this.musicMuted;
 
-    if (this.masterGain) {
-      this.masterGain.gain.value = this.muted ? 0 : 0.18;
+    if (!this.music) return;
+
+    this.music.muted = this.musicMuted;
+
+    if (!this.musicMuted) {
+      void this.music.play().catch(() => {
+        // Browser may block playback until another interaction.
+      });
+    }
+  }
+
+  toggleSfxMute(): void {
+    this.sfxMuted = !this.sfxMuted;
+
+    if (this.sfxGain) {
+      this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.18;
     }
   }
 
@@ -40,11 +53,9 @@ export class AudioManager {
     const clickFrequency =
       aliveCount <= 7 ? 190 : aliveCount <= 14 ? 160 : 132;
 
-    // Low mechanical march thump.
     this.playTone(bassFrequency, 0.105, "sawtooth", 0.13);
 
-    // Short higher click layered after the thump, like a servo/boot step.
-    setTimeout(() => {
+    window.setTimeout(() => {
       this.playTone(clickFrequency, 0.035, "square", 0.045);
     }, 42);
   }
@@ -63,13 +74,71 @@ export class AudioManager {
 
   playTankHit(): void {
     this.playTone(55, 0.28, "square", 0.16);
-    setTimeout(() => this.playTone(110, 0.15, "triangle", 0.1), 90);
+    window.setTimeout(() => this.playTone(110, 0.15, "triangle", 0.1), 90);
   }
 
   playWaveClear(): void {
     this.playTone(330, 0.08, "square", 0.08);
-    setTimeout(() => this.playTone(440, 0.08, "square", 0.08), 110);
-    setTimeout(() => this.playTone(660, 0.13, "square", 0.08), 220);
+    window.setTimeout(() => this.playTone(440, 0.08, "square", 0.08), 110);
+    window.setTimeout(() => this.playTone(660, 0.13, "square", 0.08), 220);
+  }
+
+  private initializeSfx(): void {
+    if (this.context) {
+      if (this.context.state === "suspended") {
+        void this.context.resume();
+      }
+
+      return;
+    }
+
+    const AudioContextConstructor =
+      window.AudioContext ||
+      (
+        window as Window &
+          typeof globalThis & { webkitAudioContext?: typeof AudioContext }
+      ).webkitAudioContext;
+
+    if (!AudioContextConstructor) return;
+
+    this.context = new AudioContextConstructor();
+    this.sfxGain = this.context.createGain();
+    this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.18;
+    this.sfxGain.connect(this.context.destination);
+
+    if (this.context.state === "suspended") {
+      void this.context.resume();
+    }
+  }
+
+  private initializeMusic(): void {
+    if (this.music || this.musicLoadFailed) {
+      this.playMusicIfAvailable();
+      return;
+    }
+
+    const music = new Audio("/assets/audio/music_loop.mp3");
+
+    music.loop = true;
+    music.volume = 0.28;
+    music.muted = this.musicMuted;
+
+    music.addEventListener("error", () => {
+      this.musicLoadFailed = true;
+      this.music = null;
+      console.info("UAEC Invasion: no music_loop.mp3 found. Music disabled.");
+    });
+
+    this.music = music;
+    this.playMusicIfAvailable();
+  }
+
+  private playMusicIfAvailable(): void {
+    if (!this.music || this.musicMuted || this.musicLoadFailed) return;
+
+    void this.music.play().catch(() => {
+      // Browser may require another user interaction first.
+    });
   }
 
   private playTone(
@@ -78,7 +147,7 @@ export class AudioManager {
     type: OscillatorType,
     volume: number,
   ): void {
-    if (!this.context || !this.masterGain || this.muted) return;
+    if (!this.context || !this.sfxGain || this.sfxMuted) return;
 
     const now = this.context.currentTime;
     const oscillator = this.context.createOscillator();
@@ -91,7 +160,7 @@ export class AudioManager {
     gain.gain.exponentialRampToValueAtTime(0.001, now + durationSeconds);
 
     oscillator.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain);
 
     oscillator.start(now);
     oscillator.stop(now + durationSeconds);

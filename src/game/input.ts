@@ -11,6 +11,7 @@ export class InputManager {
       "Space",
       "Enter",
       "KeyM",
+      "KeyN",
       "KeyT",
       "KeyP",
       "KeyH",

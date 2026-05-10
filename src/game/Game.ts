@@ -116,7 +116,11 @@ export class Game {
     this.updateScreenShake(dtMs);
 
     if (this.input.consume("KeyM")) {
-      this.audio.toggleMute();
+      this.audio.toggleMusicMute();
+    }
+
+    if (this.input.consume("KeyN")) {
+      this.audio.toggleSfxMute();
     }
 
 
@@ -1043,11 +1047,15 @@ export class Game {
       this.ctx.fillRect(x + 3, y + 6, 18, 4);
     }
 
-    // Audio indicator.
+    // Audio indicators.
     this.ctx.textAlign = "right";
     this.ctx.font = "15px 'Courier New', monospace";
-    this.ctx.fillStyle = this.audio.isMuted ? "#ff4f9a" : "#9ee7ff";
-    this.ctx.fillText(this.audio.isMuted ? "MUTED [M]" : "AUDIO [M]", WIDTH - 28, 26);
+
+    this.ctx.fillStyle = this.audio.isMusicMuted ? "#ff4f9a" : "#9ee7ff";
+    this.ctx.fillText(this.audio.isMusicMuted ? "MUSIC OFF [M]" : "MUSIC [M]", WIDTH - 28, 26);
+
+    this.ctx.fillStyle = this.audio.isSfxMuted ? "#ff4f9a" : "#9ee7ff";
+    this.ctx.fillText(this.audio.isSfxMuted ? "SFX OFF [N]" : "SFX [N]", WIDTH - 28, 50);
 
     this.ctx.restore();
   }
@@ -1553,13 +1561,15 @@ export class Game {
     this.ctx.fillText("A/D or ←/→", panelX + 48, panelY + 42);
     this.ctx.fillText("SPACE", panelX + 48, panelY + 76);
     this.ctx.fillText("P/ESC", panelX + 48, panelY + 110);
-    this.ctx.fillText("M", panelX + 48, panelY + 134);
+    this.ctx.fillText("M", panelX + 48, panelY + 124);
+    this.ctx.fillText("N", panelX + 48, panelY + 148);
 
     this.ctx.fillStyle = "#f5f7ff";
     this.ctx.fillText("MOVE", panelX + 278, panelY + 42);
     this.ctx.fillText("FIRE", panelX + 278, panelY + 76);
     this.ctx.fillText("PAUSE", panelX + 278, panelY + 110);
-    this.ctx.fillText(this.audio.isMuted ? "UNMUTE" : "MUTE", panelX + 278, panelY + 134);
+    this.ctx.fillText(this.audio.isMusicMuted ? "MUSIC ON" : "MUSIC OFF", panelX + 278, panelY + 124);
+    this.ctx.fillText(this.audio.isSfxMuted ? "SFX ON" : "SFX OFF", panelX + 278, panelY + 148);
 
     this.ctx.textAlign = "center";
     this.ctx.font = "20px 'Courier New', monospace";
