@@ -1,0 +1,187 @@
+export class AudioManager {
+  private context: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private musicGain: GainNode | null = null;
+  private musicStarted = false;
+  private musicPulseTimer: number | null = null;
+  private muted = false;
+
+  get isMuted(): boolean {
+    return this.muted;
+  }
+
+  initialize(): void {
+    if (!this.context) {
+      const AudioContextConstructor =
+        window.AudioContext ||
+        (
+          window as Window &
+            typeof globalThis & { webkitAudioContext?: typeof AudioContext }
+        ).webkitAudioContext;
+
+      if (!AudioContextConstructor) return;
+
+      this.context = new AudioContextConstructor();
+      this.masterGain = this.context.createGain();
+      this.masterGain.gain.value = this.muted ? 0 : 0.18;
+      this.masterGain.connect(this.context.destination);
+    }
+
+    if (this.context.state === "suspended") {
+      void this.context.resume();
+    }
+
+    this.startAmbientLoop();
+  }
+
+  toggleMute(): void {
+    this.muted = !this.muted;
+
+    if (this.masterGain) {
+      this.masterGain.gain.value = this.muted ? 0 : 0.18;
+    }
+  }
+
+  playHeartbeat(aliveCount: number): void {
+    const bassFrequency =
+      aliveCount <= 3 ? 104 : aliveCount <= 7 ? 92 : aliveCount <= 14 ? 78 : 64;
+
+    const clickFrequency =
+      aliveCount <= 7 ? 190 : aliveCount <= 14 ? 160 : 132;
+
+    // Low mechanical march thump.
+    this.playTone(bassFrequency, 0.105, "sawtooth", 0.13);
+
+    // Short higher click layered after the thump, like a servo/boot step.
+    window.setTimeout(() => {
+      this.playTone(clickFrequency, 0.035, "square", 0.045);
+    }, 42);
+  }
+
+  playShoot(): void {
+    this.playTone(420, 0.06, "square", 0.08);
+  }
+
+  playEnemyHit(): void {
+    this.playTone(140, 0.09, "triangle", 0.1);
+  }
+
+  playPlayerHit(): void {
+    this.playTone(70, 0.22, "sawtooth", 0.16);
+  }
+
+  playTankHit(): void {
+    this.playTone(55, 0.28, "square", 0.16);
+    window.setTimeout(() => this.playTone(110, 0.15, "triangle", 0.1), 90);
+  }
+
+  playWaveClear(): void {
+    this.playTone(330, 0.08, "square", 0.08);
+    window.setTimeout(() => this.playTone(440, 0.08, "square", 0.08), 110);
+    window.setTimeout(() => this.playTone(660, 0.13, "square", 0.08), 220);
+  }
+
+  private startAmbientLoop(): void {
+    if (!this.context || !this.masterGain || this.musicStarted) return;
+
+    this.musicStarted = true;
+
+    const now = this.context.currentTime;
+
+    this.musicGain = this.context.createGain();
+    this.musicGain.gain.setValueAtTime(0.018, now);
+    this.musicGain.connect(this.masterGain);
+
+    const lowFilter = this.context.createBiquadFilter();
+    lowFilter.type = "lowpass";
+    lowFilter.frequency.setValueAtTime(360, now);
+
+    const bassGain = this.context.createGain();
+    bassGain.gain.setValueAtTime(0.18, now);
+
+    const bass = this.context.createOscillator();
+    bass.type = "sawtooth";
+    bass.frequency.setValueAtTime(55, now);
+
+    bass.connect(lowFilter);
+    lowFilter.connect(bassGain);
+    bassGain.connect(this.musicGain);
+    bass.start();
+
+    const padFilter = this.context.createBiquadFilter();
+    padFilter.type = "lowpass";
+    padFilter.frequency.setValueAtTime(720, now);
+
+    const padGain = this.context.createGain();
+    padGain.gain.setValueAtTime(0.07, now);
+
+    const pad = this.context.createOscillator();
+    pad.type = "triangle";
+    pad.frequency.setValueAtTime(110, now);
+
+    pad.connect(padFilter);
+    padFilter.connect(padGain);
+    padGain.connect(this.musicGain);
+    pad.start();
+
+    // Quiet repeating neon pulse, separate from the invader heartbeat.
+    this.musicPulseTimer = window.setInterval(() => {
+      this.playAmbientPulse();
+    }, 2200);
+  }
+
+  private playAmbientPulse(): void {
+    if (!this.context || !this.musicGain || this.muted) return;
+
+    const now = this.context.currentTime;
+    const notes = [220, 277.18, 329.63];
+
+    notes.forEach((frequency, index) => {
+      const oscillator = this.context?.createOscillator();
+      const gain = this.context?.createGain();
+
+      if (!oscillator || !gain || !this.musicGain || !this.context) return;
+
+      const startTime = now + index * 0.085;
+      const endTime = startTime + 0.11;
+
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.035, startTime + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, endTime);
+
+      oscillator.connect(gain);
+      gain.connect(this.musicGain);
+
+      oscillator.start(startTime);
+      oscillator.stop(endTime);
+    });
+  }
+
+  private playTone(
+    frequency: number,
+    durationSeconds: number,
+    type: OscillatorType,
+    volume: number,
+  ): void {
+    if (!this.context || !this.masterGain || this.muted) return;
+
+    const now = this.context.currentTime;
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, now);
+
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + durationSeconds);
+
+    oscillator.connect(gain);
+    gain.connect(this.masterGain);
+
+    oscillator.start(now);
+    oscillator.stop(now + durationSeconds);
+  }
+}
