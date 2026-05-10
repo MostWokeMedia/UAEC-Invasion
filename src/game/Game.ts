@@ -982,8 +982,6 @@ private drawGameplayReadabilityVeil(): void {
 
       this.ctx.save();
       this.ctx.imageSmoothingEnabled = false;
-      this.ctx.shadowColor = "rgba(158, 231, 255, 0.28)";
-      this.ctx.shadowBlur = 10;
       this.ctx.drawImage(playerSprite, drawX, drawY, drawWidth, drawHeight);
       this.ctx.restore();
       return;
@@ -1033,16 +1031,6 @@ private drawGameplayReadabilityVeil(): void {
 
       const drawY = rect.y + rect.height - drawHeight + bob;
 
-      const glowColor =
-        enemy.type === "armored"
-          ? "rgba(255, 79, 154, 0.72)"
-          : enemy.type === "shield"
-            ? "rgba(158, 231, 255, 0.64)"
-            : "rgba(125, 255, 190, 0.58)";
-
-      const glowBlur =
-        enemy.type === "armored" ? 10 : enemy.type === "shield" ? 8 : 7;
-
       this.ctx.save();
       this.ctx.imageSmoothingEnabled = false;
 
@@ -1063,13 +1051,10 @@ private drawGameplayReadabilityVeil(): void {
 
       // Slightly dimmer neon rim pass.
       this.ctx.globalAlpha = 0.72;
-      this.ctx.shadowColor = glowColor;
-      this.ctx.shadowBlur = glowBlur;
       this.ctx.drawImage(enemySprite, drawX, drawY, drawWidth, drawHeight);
 
       // Crisp readable sprite pass.
       this.ctx.globalAlpha = 1;
-      this.ctx.shadowBlur = 0;
       this.ctx.filter = "brightness(1.17) contrast(1.13) saturate(1.05)";
       this.ctx.drawImage(enemySprite, drawX, drawY, drawWidth, drawHeight);
 
@@ -1201,8 +1186,6 @@ private drawGameplayReadabilityVeil(): void {
   // Keep the existing placeholder tank function in use so TypeScript does not fail the build.
   if (!tankSprite) {
     this.ctx.save();
-    this.ctx.shadowColor = "rgba(255, 79, 154, 0.52)";
-    this.ctx.shadowBlur = 12;
     this.drawPlaceholderTank();
     this.ctx.restore();
     return;
@@ -1217,13 +1200,11 @@ private drawGameplayReadabilityVeil(): void {
 
   const drawTankSprite = (
     globalAlpha: number,
-    shadowColor: string,
-    shadowBlur: number,
+    _shadowColor: string,
+    _shadowBlur: number,
     filter: string = "none",
   ): void => {
     this.ctx.globalAlpha = globalAlpha;
-    this.ctx.shadowColor = shadowColor;
-    this.ctx.shadowBlur = shadowBlur;
     this.ctx.filter = filter;
 
     if (shouldFlipTank) {
@@ -1285,7 +1266,6 @@ private drawGameplayReadabilityVeil(): void {
   );
 
   this.ctx.filter = "none";
-  this.ctx.shadowBlur = 0;
   this.ctx.globalAlpha = 1;
   this.ctx.restore();
 }
@@ -1350,8 +1330,6 @@ private drawGameplayReadabilityVeil(): void {
     if (missileSprite) {
       this.ctx.save();
       this.ctx.imageSmoothingEnabled = false;
-      this.ctx.shadowColor = "rgba(255, 122, 61, 0.45)";
-      this.ctx.shadowBlur = 12;
       this.ctx.drawImage(
         missileSprite,
         this.playerMissile.x + PROJECTILE_SPRITE.playerXOffset,
@@ -1382,8 +1360,6 @@ private drawGameplayReadabilityVeil(): void {
       if (enemyProjectileSprite) {
         this.ctx.save();
         this.ctx.imageSmoothingEnabled = false;
-        this.ctx.shadowColor = "rgba(255, 53, 93, 0.45)";
-        this.ctx.shadowBlur = 10;
         this.ctx.drawImage(
           enemyProjectileSprite,
           projectile.x + PROJECTILE_SPRITE.enemyXOffset,
@@ -1869,10 +1845,7 @@ private drawGameplayReadabilityVeil(): void {
     const portrait = this.sprites.get("citadelWitness");
 
     if (portrait) {
-      this.ctx.shadowColor = "rgba(255, 79, 154, 0.30)";
-      this.ctx.shadowBlur = 18;
       this.ctx.drawImage(portrait, x, y, size, size);
-      this.ctx.shadowBlur = 0;
     } else {
       this.ctx.fillStyle = "#111827";
       this.ctx.fillRect(x, y, size, size);
