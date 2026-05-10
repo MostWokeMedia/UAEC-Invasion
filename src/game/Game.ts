@@ -28,6 +28,8 @@ import type {
 } from "./types";
 
 export class Game {
+  private backgroundImage = new Image();
+  private backgroundLoaded = false;
   private mode: GameMode = "start";
   private score = 0;
   private highScore = Number(localStorage.getItem("uaec-invasion-high-score") || 0);
@@ -92,6 +94,11 @@ export class Game {
     this.input = input;
     this.audio = audio;
     this.setupSpriteToggleHotkey();
+    this.backgroundImage.src = "/assets/backgrounds/citadel_street_hud_bg.png";
+    this.backgroundImage.onload = () => {
+      this.backgroundLoaded = true;
+    };
+
     this.sprites.loadAll();
     this.startWave();
   }
@@ -818,195 +825,21 @@ export class Game {
   }
 
   private drawBackground(): void {
-    const time = performance.now() / 1000;
-    const vanishingX = WIDTH / 2;
-    const vanishingY = 168;
-
-    const skyGradient = this.ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    skyGradient.addColorStop(0, "#02030a");
-    skyGradient.addColorStop(0.35, "#071021");
-    skyGradient.addColorStop(0.72, "#050714");
-    skyGradient.addColorStop(1, "#020207");
-
-    this.ctx.fillStyle = skyGradient;
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-    // Far Citadel tower silhouette.
-    this.ctx.fillStyle = "rgba(8, 14, 30, 0.96)";
-    this.ctx.fillRect(WIDTH / 2 - 72, 54, 144, 238);
-
-    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.48)";
-    this.ctx.lineWidth = 2;
-    this.ctx.strokeRect(WIDTH / 2 - 72, 54, 144, 238);
-
-    this.ctx.fillStyle = "rgba(158, 231, 255, 0.16)";
-    this.ctx.fillRect(WIDTH / 2 - 40, 96, 80, 18);
-    this.ctx.fillRect(WIDTH / 2 - 48, 142, 96, 12);
-    this.ctx.fillRect(WIDTH / 2 - 30, 190, 60, 16);
-
-    this.ctx.font = "18px 'Courier New', monospace";
-    this.ctx.textAlign = "center";
-    this.ctx.fillStyle = "rgba(255, 79, 154, 0.34)";
-    this.ctx.fillText("THE CITADEL", WIDTH / 2, 316);
-
-    // Side building silhouettes.
-    this.ctx.fillStyle = "#050816";
-    this.ctx.fillRect(0, 92, 118, HEIGHT - 92);
-    this.ctx.fillRect(WIDTH - 118, 92, 118, HEIGHT - 92);
-
-    this.ctx.fillStyle = "#071023";
-    this.ctx.fillRect(118, 132, 82, HEIGHT - 132);
-    this.ctx.fillRect(WIDTH - 200, 132, 82, HEIGHT - 132);
-
-    this.ctx.fillStyle = "#080d1f";
-    this.ctx.fillRect(200, 178, 58, HEIGHT - 178);
-    this.ctx.fillRect(WIDTH - 258, 178, 58, HEIGHT - 178);
-
-    // Neon signs.
-    this.ctx.font = "20px 'Courier New', monospace";
-    this.ctx.textAlign = "center";
-
-    const signPulse = 0.68 + Math.sin(time * 2.4) * 0.18;
-
     this.ctx.save();
-    this.ctx.globalAlpha = signPulse;
-    this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillRect(34, 150, 54, 128);
-    this.ctx.fillStyle = "#071021";
-    this.ctx.fillText("NEO", 61, 190);
-    this.ctx.fillText("TOKYO", 61, 224);
-    this.ctx.restore();
+    this.ctx.imageSmoothingEnabled = false;
 
-    this.ctx.save();
-    this.ctx.globalAlpha = 0.72 + Math.sin(time * 3.1) * 0.12;
-    this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillRect(WIDTH - 92, 174, 50, 116);
-    this.ctx.fillStyle = "#071021";
-    this.ctx.fillText("未来", WIDTH - 67, 218);
-    this.ctx.fillText("CITY", WIDTH - 67, 254);
-    this.ctx.restore();
+    if (this.backgroundLoaded) {
+      this.ctx.drawImage(this.backgroundImage, 0, 0, WIDTH, HEIGHT);
 
-    // Street base.
-    const streetGradient = this.ctx.createLinearGradient(0, vanishingY, 0, HEIGHT);
-    streetGradient.addColorStop(0, "#080d1c");
-    streetGradient.addColorStop(0.52, "#0b1021");
-    streetGradient.addColorStop(1, "#05050b");
-
-    this.ctx.fillStyle = streetGradient;
-    this.ctx.beginPath();
-    this.ctx.moveTo(vanishingX - 88, vanishingY);
-    this.ctx.lineTo(vanishingX + 88, vanishingY);
-    this.ctx.lineTo(WIDTH - 70, HEIGHT);
-    this.ctx.lineTo(70, HEIGHT);
-    this.ctx.closePath();
-    this.ctx.fill();
-
-    // Sidewalks.
-    this.ctx.fillStyle = "rgba(12, 18, 32, 0.88)";
-    this.ctx.beginPath();
-    this.ctx.moveTo(0, HEIGHT);
-    this.ctx.lineTo(70, HEIGHT);
-    this.ctx.lineTo(vanishingX - 88, vanishingY);
-    this.ctx.lineTo(vanishingX - 165, vanishingY);
-    this.ctx.closePath();
-    this.ctx.fill();
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(WIDTH, HEIGHT);
-    this.ctx.lineTo(WIDTH - 70, HEIGHT);
-    this.ctx.lineTo(vanishingX + 88, vanishingY);
-    this.ctx.lineTo(vanishingX + 165, vanishingY);
-    this.ctx.closePath();
-    this.ctx.fill();
-
-    // Perspective lane rays.
-    this.ctx.lineWidth = 2;
-    const laneTargets = [-330, -220, -110, 0, 110, 220, 330];
-
-    for (const target of laneTargets) {
-      const isCenter = target === 0;
-      this.ctx.strokeStyle = isCenter
-        ? "rgba(255, 247, 214, 0.28)"
-        : "rgba(158, 231, 255, 0.20)";
-
-      this.ctx.setLineDash(isCenter ? [24, 22] : []);
-      this.ctx.beginPath();
-      this.ctx.moveTo(vanishingX, vanishingY);
-      this.ctx.lineTo(WIDTH / 2 + target, HEIGHT);
-      this.ctx.stroke();
-    }
-
-    this.ctx.setLineDash([]);
-
-    // Horizontal depth markers across the street.
-    const depthRows = [
-      { y: 210, alpha: 0.10 },
-      { y: 260, alpha: 0.12 },
-      { y: 320, alpha: 0.14 },
-      { y: 392, alpha: 0.17 },
-      { y: 476, alpha: 0.20 },
-      { y: 574, alpha: 0.24 },
-      { y: 670, alpha: 0.28 },
-    ];
-
-    for (const row of depthRows) {
-      const t = (row.y - vanishingY) / (HEIGHT - vanishingY);
-      const halfWidth = 95 + t * 360;
-
-      this.ctx.strokeStyle = `rgba(255, 79, 154, ${row.alpha})`;
-      this.ctx.lineWidth = 2;
-      this.ctx.beginPath();
-      this.ctx.moveTo(vanishingX - halfWidth, row.y);
-      this.ctx.lineTo(vanishingX + halfWidth, row.y);
-      this.ctx.stroke();
-    }
-
-    // Wet street reflections.
-    this.ctx.save();
-    this.ctx.globalAlpha = 0.18;
-    this.ctx.fillStyle = "#ff4f9a";
-
-    for (let i = 0; i < 12; i++) {
-      const y = 330 + i * 31;
-      const width = 42 + (i % 4) * 28;
-      const x = WIDTH / 2 - width / 2 + Math.sin(i * 1.8) * 95;
-      this.ctx.fillRect(x, y, width, 3);
-    }
-
-    this.ctx.fillStyle = "#9ee7ff";
-
-    for (let i = 0; i < 10; i++) {
-      const y = 360 + i * 34;
-      const width = 32 + (i % 3) * 24;
-      const x = WIDTH / 2 - width / 2 + Math.cos(i * 2.2) * 120;
-      this.ctx.fillRect(x, y, width, 2);
+      // Small tint so sprites and background feel unified without hiding the art.
+      this.ctx.fillStyle = "rgba(2, 4, 10, 0.06)";
+      this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    } else {
+      this.ctx.fillStyle = "#050713";
+      this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
     }
 
     this.ctx.restore();
-
-    // Far depth fog.
-    const fogGradient = this.ctx.createLinearGradient(0, 125, 0, 335);
-    fogGradient.addColorStop(0, "rgba(158, 231, 255, 0.16)");
-    fogGradient.addColorStop(0.5, "rgba(255, 79, 154, 0.08)");
-    fogGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-    this.ctx.fillStyle = fogGradient;
-    this.ctx.fillRect(0, 125, WIDTH, 230);
-
-    // Thin horizon glow.
-    this.ctx.strokeStyle = "rgba(255, 79, 154, 0.45)";
-    this.ctx.lineWidth = 2;
-    this.ctx.beginPath();
-    this.ctx.moveTo(160, vanishingY);
-    this.ctx.lineTo(WIDTH - 160, vanishingY);
-    this.ctx.stroke();
-
-    // Subtle lower darkness so player/barricades remain readable.
-    const lowerShade = this.ctx.createLinearGradient(0, HEIGHT - 220, 0, HEIGHT);
-    lowerShade.addColorStop(0, "rgba(0, 0, 0, 0)");
-    lowerShade.addColorStop(1, "rgba(0, 0, 0, 0.34)");
-    this.ctx.fillStyle = lowerShade;
-    this.ctx.fillRect(0, HEIGHT - 220, WIDTH, 220);
   }
 
   private drawHud(): void {
