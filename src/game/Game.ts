@@ -199,42 +199,48 @@ export class Game {
   }
 
   render(): void {
-    this.ctx.save();
-    this.applyScreenShake();
+  this.ctx.save();
+  this.applyScreenShake();
 
-    this.drawBackground();
-    this.drawTank();
-    this.drawEnemies();
-    this.drawBarricades();
-    this.drawProjectiles();
-    this.drawExplosions();
-    this.drawPlayer();
-    this.drawFloatingTexts();
-    this.drawHud();
+  this.drawBackground();
 
-    if (this.mode === "start") {
-      this.drawStartScreen();
-    }
+  // Keep rain / CRT behind gameplay objects so enemies stay readable.
+  this.drawAtmosphereOverlay();
 
-    if (this.mode === "game-over") {
-      this.drawGameOverScreen();
-    }
+  // Darken the busy street before drawing enemies and projectiles.
+  this.drawGameplayReadabilityVeil();
 
-    if (this.mode === "paused") {
-      this.drawPauseScreen();
-    }
+  this.drawTank();
+  this.drawEnemies();
+  this.drawBarricades();
+  this.drawProjectiles();
+  this.drawExplosions();
+  this.drawPlayer();
+  this.drawFloatingTexts();
+  this.drawHud();
 
-    if (this.mode === "wave-clear") {
-      this.drawWaveClearScreen();
-    }
-
-    if (this.mode === "player-hit") {
-      this.drawPlayerHitScreen();
-    }
-
-    this.ctx.restore();
-    this.drawAtmosphereOverlay();
+  if (this.mode === "start") {
+    this.drawStartScreen();
   }
+
+  if (this.mode === "game-over") {
+    this.drawGameOverScreen();
+  }
+
+  if (this.mode === "paused") {
+    this.drawPauseScreen();
+  }
+
+  if (this.mode === "wave-clear") {
+    this.drawWaveClearScreen();
+  }
+
+  if (this.mode === "player-hit") {
+    this.drawPlayerHitScreen();
+  }
+
+  this.ctx.restore();
+}
 
   private updatePlaying(dtMs: number): void {
     this.player.invulnerableMs = Math.max(0, this.player.invulnerableMs - dtMs);
@@ -842,6 +848,47 @@ export class Game {
     this.ctx.restore();
   }
 
+private drawGameplayReadabilityVeil(): void {
+  this.ctx.save();
+
+  const playfieldTop = 86;
+
+  const verticalVeil = this.ctx.createLinearGradient(
+    0,
+    playfieldTop,
+    0,
+    HEIGHT,
+  );
+
+  verticalVeil.addColorStop(0, "rgba(2, 5, 15, 0.50)");
+  verticalVeil.addColorStop(0.42, "rgba(2, 5, 15, 0.40)");
+  verticalVeil.addColorStop(0.72, "rgba(2, 5, 15, 0.28)");
+  verticalVeil.addColorStop(1, "rgba(2, 5, 15, 0.18)");
+
+  this.ctx.fillStyle = verticalVeil;
+  this.ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
+
+  const centerVeil = this.ctx.createRadialGradient(
+    WIDTH / 2,
+    360,
+    60,
+    WIDTH / 2,
+    360,
+    470,
+  );
+
+  centerVeil.addColorStop(0, "rgba(0, 0, 0, 0.28)");
+  centerVeil.addColorStop(0.62, "rgba(0, 0, 0, 0.18)");
+  centerVeil.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+  this.ctx.fillStyle = centerVeil;
+  this.ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
+
+  this.ctx.restore();
+}
+
+
+
   private drawHud(): void {
     this.ctx.save();
 
@@ -957,44 +1004,81 @@ export class Game {
   }
 
   private drawEnemies(): void {
-    const frame = this.formation.animationFrame;
+  const frame = this.formation.animationFrame;
 
-    for (const enemy of this.enemies) {
-      if (!enemy.alive) continue;
+  for (const enemy of this.enemies) {
+    if (!enemy.alive) continue;
 
-      const rect = this.getEnemyRect(enemy);
-      const spriteKey = this.getEnemySpriteKey(enemy, frame);
-      const enemySprite = this.sprites.get(spriteKey);
+    const rect = this.getEnemyRect(enemy);
+    const spriteKey = this.getEnemySpriteKey(enemy, frame);
+    const enemySprite = this.sprites.get(spriteKey);
 
-      if (enemySprite) {
-        const bob = frame === 0 ? 0 : rect.height * ENEMY_SPRITE.bobRatio;
-        const typeScale = ENEMY_SPRITE.typeScale[enemy.type];
-        const typeXOffset = ENEMY_SPRITE.typeXOffset[enemy.type];
-        const drawWidth = rect.width * ENEMY_SPRITE.widthScale * typeScale;
-        const drawHeight = rect.height * ENEMY_SPRITE.heightScale * typeScale;
-        const drawX =
-          rect.x + rect.width / 2 - drawWidth / 2 + ENEMY_SPRITE.xOffset + typeXOffset;
-        const drawY = rect.y + rect.height - drawHeight + bob;
+    if (enemySprite) {
+      const bob = frame === 0 ? 0 : rect.height * ENEMY_SPRITE.bobRatio;
+      const typeScale = ENEMY_SPRITE.typeScale[enemy.type];
+      const typeXOffset = ENEMY_SPRITE.typeXOffset[enemy.type];
 
-        this.ctx.save();
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.shadowColor = "rgba(255, 79, 154, 0.18)";
-        this.ctx.shadowBlur = 8;
-        this.ctx.drawImage(
-          enemySprite,
-          drawX,
-          drawY,
-          drawWidth,
-          drawHeight,
-        );
-        this.ctx.restore();
+      const drawWidth = rect.width * ENEMY_SPRITE.widthScale * typeScale;
+      const drawHeight = rect.height * ENEMY_SPRITE.heightScale * typeScale;
 
-        continue;
-      }
+      const drawX =
+        rect.x +
+        rect.width / 2 -
+        drawWidth / 2 +
+        ENEMY_SPRITE.xOffset +
+        typeXOffset;
 
-      this.drawPlaceholderEnemy(enemy, rect, frame);
+      const drawY = rect.y + rect.height - drawHeight + bob;
+
+      const glowColor =
+        enemy.type === "armored"
+          ? "rgba(255, 79, 154, 0.72)"
+          : enemy.type === "shield"
+            ? "rgba(158, 231, 255, 0.64)"
+            : "rgba(125, 255, 190, 0.58)";
+
+      const glowBlur =
+        enemy.type === "armored" ? 10 : enemy.type === "shield" ? 8 : 7;
+
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = false;
+
+      // Grounding shadow separates the legs from the wet road.
+      this.ctx.globalAlpha = 0.32;
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.74)";
+      this.ctx.beginPath();
+      this.ctx.ellipse(
+        rect.x + rect.width / 2,
+        rect.y + rect.height * 0.96,
+        drawWidth * 0.36,
+        Math.max(4, drawHeight * 0.09),
+        0,
+        0,
+        Math.PI * 2,
+      );
+      this.ctx.fill();
+
+      // Slightly dimmer neon rim pass.
+      this.ctx.globalAlpha = 0.72;
+      this.ctx.shadowColor = glowColor;
+      this.ctx.shadowBlur = glowBlur;
+      this.ctx.drawImage(enemySprite, drawX, drawY, drawWidth, drawHeight);
+
+      // Crisp readable sprite pass.
+      this.ctx.globalAlpha = 1;
+      this.ctx.shadowBlur = 0;
+      this.ctx.filter = "brightness(1.17) contrast(1.13) saturate(1.05)";
+      this.ctx.drawImage(enemySprite, drawX, drawY, drawWidth, drawHeight);
+
+      this.ctx.filter = "none";
+      this.ctx.restore();
+
+      continue;
     }
+
+    this.drawPlaceholderEnemy(enemy, rect, frame);
   }
+}
 
   private getEnemySpriteKey(enemy: Enemy, frame: number): SpriteKey {
     if (enemy.type === "officer") {
@@ -1107,35 +1191,101 @@ export class Game {
   }
 
   private drawTank(): void {
-    if (!this.tank.active) return;
+  if (!this.tank.active) return;
 
-    const tankSprite = this.sprites.get("uaecTank");
+  const tankSprite = this.sprites.get("uaecTank");
 
-    if (tankSprite) {
-      const drawWidth = this.tank.width;
-      const drawHeight = this.tank.height + TANK_SPRITE.extraHeight;
-      const drawX = this.tank.x;
-      const drawY = this.tank.y + TANK_SPRITE.yOffset;
+  // Keep the existing placeholder tank function in use so TypeScript does not fail the build.
+  if (!tankSprite) {
+    this.ctx.save();
+    this.ctx.shadowColor = "rgba(255, 79, 154, 0.52)";
+    this.ctx.shadowBlur = 12;
+    this.drawPlaceholderTank();
+    this.ctx.restore();
+    return;
+  }
 
+  const drawX = this.tank.x;
+  const drawY = this.tank.y + TANK_SPRITE.yOffset;
+  const drawWidth = this.tank.width;
+  const drawHeight = this.tank.height + TANK_SPRITE.extraHeight;
+
+  const shouldFlipTank = this.tank.direction === -1;
+
+  const drawTankSprite = (
+    globalAlpha: number,
+    shadowColor: string,
+    shadowBlur: number,
+    filter: string = "none",
+  ): void => {
+    this.ctx.globalAlpha = globalAlpha;
+    this.ctx.shadowColor = shadowColor;
+    this.ctx.shadowBlur = shadowBlur;
+    this.ctx.filter = filter;
+
+    if (shouldFlipTank) {
       this.ctx.save();
-      this.ctx.imageSmoothingEnabled = false;
-      this.ctx.shadowColor = "rgba(255, 79, 154, 0.28)";
-      this.ctx.shadowBlur = 12;
-
-      if (this.tank.direction === -1) {
-        this.ctx.translate(drawX + drawWidth, drawY);
-        this.ctx.scale(-1, 1);
-        this.ctx.drawImage(tankSprite, 0, 0, drawWidth, drawHeight);
-      } else {
-        this.ctx.drawImage(tankSprite, drawX, drawY, drawWidth, drawHeight);
-      }
-
+      this.ctx.translate(drawX + drawWidth / 2, drawY + drawHeight / 2);
+      this.ctx.scale(-1, 1);
+      this.ctx.drawImage(
+        tankSprite,
+        -drawWidth / 2,
+        -drawHeight / 2,
+        drawWidth,
+        drawHeight,
+      );
       this.ctx.restore();
       return;
     }
 
-    this.drawPlaceholderTank();
-  }
+    this.ctx.drawImage(tankSprite, drawX, drawY, drawWidth, drawHeight);
+  };
+
+  this.ctx.save();
+  this.ctx.imageSmoothingEnabled = false;
+
+  // Grounding shadow so the tank does not disappear into the far street.
+  this.ctx.globalAlpha = 0.34;
+  this.ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+  this.ctx.beginPath();
+  this.ctx.ellipse(
+    this.tank.x + this.tank.width / 2,
+    this.tank.y + this.tank.height * 0.9,
+    drawWidth * 0.48,
+    Math.max(5, drawHeight * 0.12),
+    0,
+    0,
+    Math.PI * 2,
+  );
+  this.ctx.fill();
+
+  // Pink UAEC glow behind the tank.
+  drawTankSprite(
+    0.42,
+    "rgba(255, 79, 154, 0.56)",
+    14,
+  );
+
+  // Subtle cyan edge glow.
+  drawTankSprite(
+    0.22,
+    "rgba(158, 231, 255, 0.46)",
+    8,
+  );
+
+  // Final crisp tank pass.
+  drawTankSprite(
+    1,
+    "rgba(0, 0, 0, 0)",
+    0,
+    "brightness(1.14) contrast(1.12) saturate(1.05)",
+  );
+
+  this.ctx.filter = "none";
+  this.ctx.shadowBlur = 0;
+  this.ctx.globalAlpha = 1;
+  this.ctx.restore();
+}
 
   private drawPlaceholderTank(): void {
     this.ctx.fillStyle = "#1a2233";
