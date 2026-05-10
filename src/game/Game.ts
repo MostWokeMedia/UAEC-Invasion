@@ -81,6 +81,8 @@ export class Game {
     spawnTimerMs: 14000,
   };
 
+  private nextTankDirection: Direction = -1;
+
   private ctx: CanvasRenderingContext2D;
   private input: InputManager;
   private audio: AudioManager;
@@ -462,7 +464,8 @@ export class Game {
     this.tank.spawnTimerMs -= dtMs;
 
     if (this.tank.spawnTimerMs <= 0) {
-      const direction: Direction = Math.random() < 0.5 ? 1 : -1;
+      const direction: Direction = this.nextTankDirection;
+      this.nextTankDirection = this.nextTankDirection === -1 ? 1 : -1;
 
       this.tank = {
         active: true,
