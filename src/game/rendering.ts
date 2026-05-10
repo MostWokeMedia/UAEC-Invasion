@@ -19,9 +19,9 @@ export const ENEMY_SPRITE = {
   xOffset: 13,
 
   typeScale: {
-    officer: 1.00,
-    shield: 1.14,
-    armored: 1.24,
+    officer: 1.18,
+    shield: 0.96,
+    armored: 1.30,
   },
 
   typeXOffset: {
