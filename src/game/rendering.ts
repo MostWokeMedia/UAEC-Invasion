@@ -26,15 +26,15 @@ export const ENEMY_SPRITE = {
 };
 
 export const PROJECTILE_SPRITE = {
-  playerWidth: 20,
-  playerHeight: 34,
-  playerXOffset: -7,
-  playerYOffset: -4,
+  playerWidth: 24,
+  playerHeight: 42,
+  playerXOffset: -9,
+  playerYOffset: -8,
 
-  enemyWidth: 18,
-  enemyHeight: 28,
-  enemyXOffset: -5,
-  enemyYOffset: -3,
+  enemyWidth: 20,
+  enemyHeight: 32,
+  enemyXOffset: -6,
+  enemyYOffset: -5,
 };
 
 export const EXPLOSION_SPRITE = {
