@@ -17,6 +17,12 @@ export const ENEMY_SPRITE = {
   heightScale: 1.48,
   bobRatio: 0.04,
   xOffset: 13,
+
+  typeScale: {
+    officer: 1.00,
+    shield: 1.14,
+    armored: 1.34,
+  },
 };
 
 export const PROJECTILE_SPRITE = {

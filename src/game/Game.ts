@@ -912,6 +912,11 @@ export class Game {
 
       if (enemySprite) {
         const bob = frame === 0 ? 0 : rect.height * ENEMY_SPRITE.bobRatio;
+        const typeScale = ENEMY_SPRITE.typeScale[enemy.type];
+        const drawWidth = rect.width * ENEMY_SPRITE.widthScale * typeScale;
+        const drawHeight = rect.height * ENEMY_SPRITE.heightScale * typeScale;
+        const drawX = rect.x + rect.width / 2 - drawWidth / 2 + ENEMY_SPRITE.xOffset;
+        const drawY = rect.y + rect.height - drawHeight + bob;
 
         this.ctx.save();
         this.ctx.imageSmoothingEnabled = false;
@@ -919,10 +924,10 @@ export class Game {
         this.ctx.shadowBlur = 8;
         this.ctx.drawImage(
           enemySprite,
-          rect.x - rect.width * ENEMY_SPRITE.xPaddingRatio + ENEMY_SPRITE.xOffset,
-          rect.y - rect.height * ENEMY_SPRITE.yTopPaddingRatio + bob,
-          rect.width * ENEMY_SPRITE.widthScale,
-          rect.height * ENEMY_SPRITE.heightScale,
+          drawX,
+          drawY,
+          drawWidth,
+          drawHeight,
         );
         this.ctx.restore();
 
