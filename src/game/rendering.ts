@@ -21,7 +21,7 @@ export const ENEMY_SPRITE = {
   typeScale: {
     officer: 1.00,
     shield: 1.14,
-    armored: 1.34,
+    armored: 1.24,
   },
 };
 
