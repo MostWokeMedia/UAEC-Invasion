@@ -5,6 +5,10 @@ export const BALANCE = {
     fireFlashMs: 140,
     respawnInvulnerableMs: 1200,
     hitInvulnerableMs: 1600,
+
+    // Visual sprite is large and shows upper body/launcher.
+    // Collision should sit lower so enemy shots must hit the player's body zone.
+    hitboxYOffset: 22,
   },
 
   formation: {

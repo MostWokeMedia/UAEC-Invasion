@@ -1,5 +1,6 @@
 import { COLS, HEIGHT, ROWS, TOTAL_ENEMIES, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
+import { BALANCE } from "./balance";
 import { SpriteManager } from "./assets";
 import type { SpriteKey } from "./assets";
 import { InputManager } from "./input";
@@ -574,7 +575,10 @@ export class Game {
 
       if (projectileConsumed) continue;
 
-      if (this.player.invulnerableMs <= 0 && rectsOverlap(projectile, this.player)) {
+      if (
+        this.player.invulnerableMs <= 0 &&
+        rectsOverlap(projectile, this.getPlayerHitbox())
+      ) {
         this.explosions.push({
           x: this.player.x + this.player.width / 2 - EXPLOSION_SPRITE.playerWidth / 2,
           y: this.player.y + this.player.height / 2 - EXPLOSION_SPRITE.playerHeight / 2,
@@ -641,6 +645,15 @@ export class Game {
     if (block.hp <= 0) {
       block.active = false;
     }
+  }
+
+  private getPlayerHitbox(): Rect {
+    return {
+      x: this.player.x,
+      y: this.player.y + BALANCE.player.hitboxYOffset,
+      width: this.player.width,
+      height: this.player.height,
+    };
   }
 
   private chooseEnemyShooter(): Enemy | null {
