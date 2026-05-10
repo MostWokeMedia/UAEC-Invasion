@@ -511,8 +511,8 @@ export class Game {
         y: this.tank.y + this.tank.height / 2 - EXPLOSION_SPRITE.tankHeight / 2,
         width: EXPLOSION_SPRITE.tankWidth,
         height: EXPLOSION_SPRITE.tankHeight,
-        lifeMs: 620,
-        totalLifeMs: 620,
+        lifeMs: 820,
+        totalLifeMs: 820,
       });
 
       this.triggerScreenShake(360, 10);
@@ -544,8 +544,8 @@ export class Game {
           y: enemyRect.y + enemyRect.height / 2 - EXPLOSION_SPRITE.enemyHeight / 2,
           width: EXPLOSION_SPRITE.enemyWidth,
           height: EXPLOSION_SPRITE.enemyHeight,
-          lifeMs: 360,
-          totalLifeMs: 360,
+          lifeMs: 320,
+          totalLifeMs: 320,
         });
 
         this.triggerScreenShake(90, 2.5);
@@ -584,8 +584,8 @@ export class Game {
           y: this.player.y + this.player.height / 2 - EXPLOSION_SPRITE.playerHeight / 2,
           width: EXPLOSION_SPRITE.playerWidth,
           height: EXPLOSION_SPRITE.playerHeight,
-          lifeMs: 520,
-          totalLifeMs: 520,
+          lifeMs: 680,
+          totalLifeMs: 680,
         });
 
         this.triggerScreenShake(520, 14);

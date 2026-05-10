@@ -38,12 +38,12 @@ export const PROJECTILE_SPRITE = {
 };
 
 export const EXPLOSION_SPRITE = {
-  enemyWidth: 48,
-  enemyHeight: 48,
+  enemyWidth: 56,
+  enemyHeight: 56,
 
-  tankWidth: 110,
-  tankHeight: 90,
+  tankWidth: 170,
+  tankHeight: 125,
 
-  playerWidth: 72,
-  playerHeight: 72,
+  playerWidth: 96,
+  playerHeight: 96,
 };
