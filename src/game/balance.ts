@@ -18,14 +18,14 @@ export const BALANCE = {
     rightBoundaryPadding: 44,
 
     // Later waves start closer, but this is capped.
-    waveAdvanceStartsOnWave: 3,
-    waveAdvancePerWave: 6,
-    maxStartingAdvance: 72,
+    waveAdvanceStartsOnWave: 4,
+    waveAdvancePerWave: 4,
+    maxStartingAdvance: 40,
 
     // Later waves move a little faster, but this is capped.
-    waveSpeedStartsOnWave: 4,
-    waveSpeedPressurePerWave: 8,
-    maxWaveSpeedPressure: 80,
+    waveSpeedStartsOnWave: 7,
+    waveSpeedPressurePerWave: 6,
+    maxWaveSpeedPressure: 60,
     minimumStepDelayMs: 80,
 
     stepDelayByAliveCount: {

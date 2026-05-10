@@ -23,13 +23,19 @@ export const ENEMY_SPRITE = {
     shield: 1.14,
     armored: 1.24,
   },
+
+  typeXOffset: {
+    officer: 0,
+    shield: -5,
+    armored: 0,
+  },
 };
 
 export const PROJECTILE_SPRITE = {
-  playerWidth: 24,
-  playerHeight: 42,
-  playerXOffset: -9,
-  playerYOffset: -8,
+  playerWidth: 30,
+  playerHeight: 52,
+  playerXOffset: -12,
+  playerYOffset: -13,
 
   enemyWidth: 20,
   enemyHeight: 32,
