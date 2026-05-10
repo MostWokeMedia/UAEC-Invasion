@@ -532,8 +532,9 @@ export class Game {
       if (!enemy.alive) continue;
 
       const enemyRect = this.getEnemyRect(enemy);
+      const enemyHurtbox = this.getEnemyHurtbox(enemy, enemyRect);
 
-      if (rectsOverlap(this.playerMissile, enemyRect)) {
+      if (rectsOverlap(this.playerMissile, enemyHurtbox)) {
         enemy.alive = false;
         this.addScore(enemy.score);
         this.floatingTexts.push({
@@ -717,8 +718,27 @@ export class Game {
     }
   }
 
+  private getEnemyHurtbox(enemy: Enemy, rect: Rect): Rect {
+    const paddingByType: Record<EnemyType, { xRatio: number; yRatio: number }> = {
+      officer: { xRatio: 0.06, yRatio: 0.04 },
+      shield: { xRatio: 0.08, yRatio: 0.04 },
+      armored: { xRatio: 0.24, yRatio: 0.10 },
+    };
+
+    const padding = paddingByType[enemy.type];
+    const padX = rect.width * padding.xRatio;
+    const padY = rect.height * padding.yRatio;
+
+    return {
+      x: rect.x - padX,
+      y: rect.y - padY,
+      width: rect.width + padX * 2,
+      height: rect.height + padY * 2,
+    };
+  }
+
   private getEnemyRect(enemy: Enemy): Rect {
-    const rowY = [170, 240, 315, 405, 500][enemy.row];
+    const rowY = [130, 200, 275, 365, 455][enemy.row];
     const baseScale = [0.72, 0.84, 0.96, 1.1, 1.25][enemy.row];
     const advanceScale = this.formation.yAdvance * 0.0017;
     const scale = baseScale + advanceScale;
