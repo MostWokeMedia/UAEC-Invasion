@@ -6,6 +6,7 @@ export class AudioManager {
   private musicMuted = false;
   private sfxMuted = false;
   private musicLoadFailed = false;
+  private musicPausedForGame = false;
 
   get isMusicMuted(): boolean {
     return this.musicMuted;
@@ -26,15 +27,33 @@ export class AudioManager {
 
   toggleMusicMute(): void {
     this.musicMuted = !this.musicMuted;
+    localStorage.setItem("uaec-music-muted", String(this.musicMuted));
 
     if (!this.music) return;
 
     this.music.muted = this.musicMuted;
 
-    if (!this.musicMuted) {
+    if (!this.musicMuted && !this.musicPausedForGame) {
       void this.music.play().catch(() => {
         // Browser may block playback until another interaction.
       });
+    }
+  }
+
+
+  pauseMusic(): void {
+    this.musicPausedForGame = true;
+
+    if (this.music && !this.music.paused) {
+      this.music.pause();
+    }
+  }
+
+  resumeMusic(): void {
+    this.musicPausedForGame = false;
+
+    if (!this.musicMuted) {
+      this.playMusicIfAvailable();
     }
   }
 
@@ -134,7 +153,7 @@ export class AudioManager {
   }
 
   private playMusicIfAvailable(): void {
-    if (!this.music || this.musicMuted || this.musicLoadFailed) return;
+    if (!this.music || this.musicMuted || this.musicLoadFailed || this.musicPausedForGame) return;
 
     void this.music.play().catch(() => {
       // Browser may require another user interaction first.

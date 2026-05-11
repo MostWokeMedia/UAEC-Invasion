@@ -137,12 +137,14 @@ export class Game {
     const pausePressed = this.input.consume("KeyP") || this.input.consume("Escape");
 
     if (pausePressed && this.mode === "playing") {
+      this.audio.pauseMusic();
       this.mode = "paused";
       return;
     }
 
     if (pausePressed && this.mode === "paused") {
       this.mode = "playing";
+      this.audio.resumeMusic();
       return;
     }
 
