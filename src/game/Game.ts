@@ -892,7 +892,6 @@ private drawGameplayReadabilityVeil(): void {
 }
 
 
-
   private drawHud(): void {
     this.ctx.save();
 
@@ -1224,116 +1223,76 @@ private drawGameplayReadabilityVeil(): void {
   }
 
   private drawTank(): void {
-  if (!this.tank.active) return;
+    if (!this.tank.active) return;
 
-  const tankSprite = this.sprites.get("uaecTank");
+    const tankSprite = this.sprites.get("uaecTank");
 
-  // Keep the existing placeholder tank function in use so TypeScript does not fail the build.
-  if (!tankSprite) {
-    this.ctx.save();
-    this.drawPlaceholderTank();
-    this.ctx.restore();
-    return;
-  }
+    if (tankSprite) {
+      const drawWidth = this.tank.width;
+      const drawHeight = this.tank.height + TANK_SPRITE.extraHeight;
+      const drawX = this.tank.x;
+      const drawY = this.tank.y + TANK_SPRITE.yOffset;
 
-  const drawX = this.tank.x;
-  const drawY = this.tank.y + TANK_SPRITE.yOffset;
-  const drawWidth = this.tank.width;
-  const drawHeight = this.tank.height + TANK_SPRITE.extraHeight;
-
-  const shouldFlipTank = this.tank.direction === -1;
-
-  const drawTankSprite = (
-    globalAlpha: number,
-    _shadowColor: string,
-    _shadowBlur: number,
-    filter: string = "none",
-  ): void => {
-    this.ctx.globalAlpha = globalAlpha;
-    this.ctx.filter = filter;
-
-    if (shouldFlipTank) {
       this.ctx.save();
-      this.ctx.translate(drawX + drawWidth / 2, drawY + drawHeight / 2);
-      this.ctx.scale(-1, 1);
-      this.ctx.drawImage(
-        tankSprite,
-        -drawWidth / 2,
-        -drawHeight / 2,
-        drawWidth,
-        drawHeight,
-      );
+
+      if (this.tank.direction === -1) {
+        this.ctx.translate(drawX + drawWidth, 0);
+        this.ctx.scale(-1, 1);
+
+        this.drawCachedImage(
+          "uaecTank",
+          tankSprite,
+          0,
+          drawY,
+          drawWidth,
+          drawHeight,
+        );
+      } else {
+        this.drawCachedImage(
+          "uaecTank",
+          tankSprite,
+          drawX,
+          drawY,
+          drawWidth,
+          drawHeight,
+        );
+      }
+
       this.ctx.restore();
       return;
     }
 
-    this.ctx.drawImage(tankSprite, drawX, drawY, drawWidth, drawHeight);
-  };
-
-  this.ctx.save();
-  this.ctx.imageSmoothingEnabled = false;
-
-  // Grounding shadow so the tank does not disappear into the far street.
-  this.ctx.globalAlpha = 0.34;
-  this.ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
-  this.ctx.beginPath();
-  this.ctx.ellipse(
-    this.tank.x + this.tank.width / 2,
-    this.tank.y + this.tank.height * 0.9,
-    drawWidth * 0.48,
-    Math.max(5, drawHeight * 0.12),
-    0,
-    0,
-    Math.PI * 2,
-  );
-  this.ctx.fill();
-
-  // Pink UAEC glow behind the tank.
-  drawTankSprite(
-    0.42,
-    "rgba(255, 79, 154, 0.56)",
-    14,
-  );
-
-  // Subtle cyan edge glow.
-  drawTankSprite(
-    0.22,
-    "rgba(158, 231, 255, 0.46)",
-    8,
-  );
-
-  // Final crisp tank pass.
-  drawTankSprite(
-    1,
-    "rgba(0, 0, 0, 0)",
-    0,
-    "brightness(1.14) contrast(1.12) saturate(1.05)",
-  );
-
-  this.ctx.filter = "none";
-  this.ctx.globalAlpha = 1;
-  this.ctx.restore();
-}
-
-  private drawPlaceholderTank(): void {
-    this.ctx.fillStyle = "#1a2233";
-    this.ctx.fillRect(this.tank.x, this.tank.y + 14, this.tank.width, this.tank.height - 14);
-
-    this.ctx.fillStyle = "#30394f";
-    this.ctx.fillRect(this.tank.x + 34, this.tank.y, 54, 24);
+    // Placeholder fallback if the tank sprite is missing or disabled.
+    this.ctx.save();
 
     this.ctx.fillStyle = "#111827";
-    this.ctx.fillRect(this.tank.x + 8, this.tank.y + this.tank.height - 8, this.tank.width - 16, 10);
+    this.ctx.fillRect(this.tank.x, this.tank.y, this.tank.width, this.tank.height);
 
-    this.ctx.fillStyle = "#c9d3e8";
-    const barrelX = this.tank.direction === 1 ? this.tank.x + this.tank.width - 5 : this.tank.x - 48;
-    this.ctx.fillRect(barrelX, this.tank.y + 16, 52, 8);
+    this.ctx.fillStyle = "#1f2937";
+    this.ctx.fillRect(
+      this.tank.x + 16,
+      this.tank.y - 10,
+      this.tank.width * 0.45,
+      this.tank.height * 0.55,
+    );
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.font = "14px 'Courier New', monospace";
+    this.ctx.fillRect(
+      this.tank.x + this.tank.width * 0.16,
+      this.tank.y + this.tank.height * 0.36,
+      this.tank.width * 0.22,
+      4,
+    );
+
+    this.ctx.fillStyle = "#f5f7ff";
+    this.ctx.font = "16px 'Courier New', monospace";
     this.ctx.textAlign = "center";
-    this.ctx.fillText("UAEC", this.tank.x + this.tank.width / 2, this.tank.y + 36);
+    this.ctx.fillText("UAEC", this.tank.x + this.tank.width / 2, this.tank.y + 28);
+
+    this.ctx.restore();
   }
+
+
 
   private drawBarricades(): void {
     const fullBlockSprite = this.sprites.get("barricadeFull");
