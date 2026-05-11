@@ -1046,6 +1046,57 @@ private drawGameplayReadabilityVeil(): void {
     );
   }
 
+  private drawCachedImageWithGlow(
+    cacheKeyBase: string,
+    image: HTMLImageElement,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    glowColor: string,
+    glowBlur: number,
+    glowAlpha: number,
+  ): void {
+    const drawWidth = Math.max(1, Math.round(width));
+    const drawHeight = Math.max(1, Math.round(height));
+    const padding = Math.ceil(glowBlur * 2);
+    const cacheKey = `${cacheKeyBase}:glow:${drawWidth}x${drawHeight}:${glowColor}:${glowBlur}:${glowAlpha}`;
+
+    let cachedCanvas = this.spriteRenderCache.get(cacheKey);
+
+    if (!cachedCanvas) {
+      cachedCanvas = document.createElement("canvas");
+      cachedCanvas.width = drawWidth + padding * 2;
+      cachedCanvas.height = drawHeight + padding * 2;
+
+      const cachedCtx = cachedCanvas.getContext("2d");
+
+      if (!cachedCtx) return;
+
+      cachedCtx.imageSmoothingEnabled = false;
+
+      // Expensive glow is rendered once into the cache, not every frame.
+      cachedCtx.save();
+      cachedCtx.globalAlpha = glowAlpha;
+      cachedCtx.shadowColor = glowColor;
+      cachedCtx.shadowBlur = glowBlur;
+      cachedCtx.drawImage(image, padding, padding, drawWidth, drawHeight);
+      cachedCtx.restore();
+
+      // Crisp sprite on top of the cached glow.
+      cachedCtx.drawImage(image, padding, padding, drawWidth, drawHeight);
+
+      this.spriteRenderCache.set(cacheKey, cachedCanvas);
+    }
+
+    this.ctx.drawImage(
+      cachedCanvas,
+      Math.round(x) - padding,
+      Math.round(y) - padding,
+    );
+  }
+
+
   private drawEnemies(): void {
   const frame = this.formation.animationFrame;
 
@@ -1093,13 +1144,24 @@ private drawGameplayReadabilityVeil(): void {
 
       // Slightly dimmer neon rim pass.
       this.ctx.globalAlpha = 0.72;
-        this.drawCachedImage(
+        const enemyGlowColor =
+          enemy.type === "officer"
+            ? "rgba(158, 231, 255, 0.62)"
+            : enemy.type === "shield"
+              ? "rgba(255, 79, 154, 0.68)"
+              : "rgba(255, 79, 154, 0.82)";
+        const enemyGlowBlur = enemy.type === "armored" ? 11 : enemy.type === "shield" ? 9 : 7;
+
+        this.drawCachedImageWithGlow(
           spriteKey,
           enemySprite,
           drawX,
           drawY,
           drawWidth,
           drawHeight,
+          enemyGlowColor,
+          enemyGlowBlur,
+          0.72,
         );
 
       // Crisp readable sprite pass.
