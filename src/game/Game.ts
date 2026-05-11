@@ -842,7 +842,7 @@ export class Game {
       this.ctx.drawImage(this.backgroundImage, 0, 0, WIDTH, HEIGHT);
 
       // Small tint so sprites and background feel unified without hiding the art.
-      this.ctx.fillStyle = "rgba(2, 4, 10, 0.06)";
+      this.ctx.fillStyle = "rgba(2, 4, 10, 0.18)";
       this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
     } else {
       this.ctx.fillStyle = "#050713";
@@ -1305,22 +1305,28 @@ private drawGameplayReadabilityVeil(): void {
         this.ctx.translate(drawX + drawWidth, 0);
         this.ctx.scale(-1, 1);
 
-        this.drawCachedImage(
+        this.drawCachedImageWithGlow(
           "uaecTank",
           tankSprite,
           0,
           drawY,
           drawWidth,
           drawHeight,
+          "rgba(255, 79, 154, 0.82)",
+          14,
+          0.72,
         );
       } else {
-        this.drawCachedImage(
+        this.drawCachedImageWithGlow(
           "uaecTank",
           tankSprite,
           drawX,
           drawY,
           drawWidth,
           drawHeight,
+          "rgba(255, 79, 154, 0.82)",
+          14,
+          0.72,
         );
       }
 
