@@ -980,10 +980,14 @@ private drawGameplayReadabilityVeil(): void {
       const drawY =
         this.player.y + this.player.height - drawHeight + PLAYER_SPRITE.yOffset;
 
-      this.ctx.save();
-      this.ctx.imageSmoothingEnabled = false;
-      this.ctx.drawImage(playerSprite, drawX, drawY, drawWidth, drawHeight);
-      this.ctx.restore();
+      this.drawCachedImage(
+        this.playerFireFlashMs > 0 && firingSprite ? "playerFire" : "playerIdle",
+        playerSprite,
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight,
+      );
       return;
     }
 
@@ -1304,10 +1308,14 @@ private drawGameplayReadabilityVeil(): void {
       const sprite = block.hp === 2 ? fullBlockSprite : damagedBlockSprite;
 
       if (sprite) {
-        this.ctx.save();
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.drawImage(sprite, block.x, block.y, block.width, block.height);
-        this.ctx.restore();
+        this.drawCachedImage(
+          block.hp === 2 ? "barricadeFull" : "barricadeDamaged",
+          sprite,
+          block.x,
+          block.y,
+          block.width,
+          block.height,
+        );
         continue;
       }
 
