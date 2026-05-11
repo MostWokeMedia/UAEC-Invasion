@@ -1538,7 +1538,7 @@ private drawGameplayReadabilityVeil(): void {
     const panelX = WIDTH / 2 - 320;
     const panelY = 104;
     const panelW = 640;
-    const panelH = 500;
+    const panelH = 530;
 
     this.ctx.fillStyle = "rgba(3, 4, 10, 0.76)";
     this.ctx.fillRect(panelX, panelY, panelW, panelH);
@@ -1617,16 +1617,16 @@ private drawGameplayReadabilityVeil(): void {
     this.ctx.fillText(
       `HIGH SCORE: ${String(this.highScore).padStart(6, "0")}`,
       WIDTH / 2,
-      646,
+      660,
     );
 
     this.ctx.font = "17px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, 676);
+    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, 690);
 
     this.ctx.font = "13px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText(BUILD_LABEL, WIDTH / 2, 702);
+    this.ctx.fillText(BUILD_LABEL, WIDTH / 2, 716);
 
     this.ctx.restore();
   }
