@@ -1,5 +1,6 @@
 export type SpriteKey =
   | "citadelWitness"
+  | "citizenLifeHead"
   | "playerIdle"
   | "playerFire"
   | "uaecOfficerWalk1"
@@ -19,6 +20,7 @@ export type SpriteKey =
 
 const SPRITE_PATHS: Record<SpriteKey, string> = {
   citadelWitness: "/assets/citadel-witness.png",
+  citizenLifeHead: "/assets/sprites/ui/citizen_life_head.png",
 
   playerIdle: "/assets/sprites/player/citizen_launcher_idle.png",
   playerFire: "/assets/sprites/player/citizen_launcher_fire.png",

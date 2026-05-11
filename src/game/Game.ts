@@ -937,11 +937,19 @@ private drawGameplayReadabilityVeil(): void {
     this.ctx.fillStyle = "#ff4f9a";
     this.ctx.fillText(String(this.wave).padStart(2, "0"), 454, 62);
 
-    // Lives as small player/launcher icons.
+    // Lives as citizen head icons.
+    const lifeHeadSprite = this.sprites.get("citizenLifeHead");
+
     for (let i = 0; i < this.lives; i++) {
       const x = 612 + i * 38;
-      const y = 45;
+      const y = 38;
 
+      if (lifeHeadSprite) {
+        this.drawCachedImage("citizenLifeHead", lifeHeadSprite, x, y, 30, 30);
+        continue;
+      }
+
+      // Fallback if the life icon is missing.
       this.ctx.fillStyle = "#202838";
       this.ctx.fillRect(x, y + 10, 24, 18);
 
