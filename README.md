@@ -29,7 +29,6 @@ Score and high score
 Wave progression
 Destructible barricades
 UAEC Tank mystery target
-Hidden 300-point tank scoring pattern
 Heartbeat-style audio
 Mute/unmute
 Pause
@@ -96,7 +95,6 @@ Score and high score
 Wave progression
 Destructible barricades
 UAEC Tank mystery target
-Hidden 300-point tank scoring pattern
 Heartbeat-style audio
 Mute/unmute
 Pause
@@ -136,18 +134,8 @@ Enemy	Role	Score
 UAEC Officer	Small invader	10
 UAEC Riot Shield Unit	Medium invader	20
 UAEC Armored Class	Large invader	30
-UAEC Tank	Mystery target	50 / 100 / 150 / 300
-Hidden Tank Scoring
-
-The UAEC Tank awards 300 points when destroyed on specific player shot counts.
-Pattern:
-
-Shot 23 = 300 points
-Shot 38 = 300 points
-Shot 53 = 300 points
-Shot 68 = 300 points
+UAEC Tank	Mystery target	50 / 100 / 150 
 ...
-The shot count is intentionally hidden from the player.
 
 Tech Stack
 TypeScript
