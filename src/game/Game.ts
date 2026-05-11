@@ -714,10 +714,15 @@ export class Game {
   }
 
   private getWaveStartingAdvance(): number {
-    if (this.wave <= 2) return 0;
+    // Waves may start lower as difficulty ramps, but never lower than Wave 9.
+    // Enemy movement speed can continue increasing separately.
+    const cappedWaveForStartHeight = Math.min(this.wave, 9);
 
-    return Math.min((this.wave - 2) * 6, 72);
+    if (cappedWaveForStartHeight <= 2) return 0;
+
+    return Math.min((cappedWaveForStartHeight - 2) * 6, 42);
   }
+
 
   private getTankScore(): number {
     if (this.playerShotCount === 23) return 300;
