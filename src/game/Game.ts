@@ -6,6 +6,7 @@ import { BarricadeRenderer } from "./barricadeRenderer";
 import { SpriteManager } from "./assets";
 import { EffectsRenderer } from "./effectsRenderer";
 import { EnemyRenderer } from "./enemyRenderer";
+import { FloatingTextRenderer } from "./floatingTextRenderer";
 import { InputManager } from "./input";
 import { PlayerRenderer } from "./playerRenderer";
 import {
@@ -97,6 +98,7 @@ export class Game {
   private barricadeRenderer: BarricadeRenderer;
   private effectsRenderer: EffectsRenderer;
   private enemyRenderer: EnemyRenderer;
+  private floatingTextRenderer: FloatingTextRenderer;
   private spriteRenderer: SpriteRenderer;
   private hudRenderer: HudRenderer;
   private playerRenderer: PlayerRenderer;
@@ -114,6 +116,7 @@ export class Game {
     this.ctx = ctx;
     this.atmosphereRenderer = new AtmosphereRenderer(ctx);
     this.effectsRenderer = new EffectsRenderer(ctx, this.sprites);
+    this.floatingTextRenderer = new FloatingTextRenderer(ctx);
     this.spriteRenderer = new SpriteRenderer(ctx);
     this.enemyRenderer = new EnemyRenderer(
       ctx,
@@ -958,13 +961,7 @@ export class Game {
   }
 
   private drawFloatingTexts(): void {
-    this.ctx.font = "18px 'Courier New', monospace";
-    this.ctx.textAlign = "center";
-    this.ctx.fillStyle = "#f5f7ff";
-
-    for (const floatingText of this.floatingTexts) {
-      this.ctx.fillText(floatingText.text, floatingText.x, floatingText.y);
-    }
+    this.floatingTextRenderer.draw(this.floatingTexts);
   }
 
   private drawStartScreen(): void {

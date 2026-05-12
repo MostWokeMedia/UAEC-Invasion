@@ -57,5 +57,6 @@ if (import.meta.hot) {
     cancelAnimationFrame(animationFrameId);
     game.dispose();
     input.dispose();
+    audio.dispose();
   });
 }

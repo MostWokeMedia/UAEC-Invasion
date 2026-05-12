@@ -7,11 +7,17 @@ export class AudioManager {
   private context: AudioContext | null = null;
   private sfxGain: GainNode | null = null;
   private music: HTMLAudioElement | null = null;
+  private unlockHandler: (() => void) | null = null;
 
   private musicMuted = readBoolean(MUSIC_MUTED_KEY, false);
   private sfxMuted = readBoolean(SFX_MUTED_KEY, false);
   private musicLoadFailed = false;
   private musicPausedForGame = false;
+  private musicRequested = false;
+
+  constructor() {
+    this.setupAudioUnlock();
+  }
 
   get isMusicMuted(): boolean {
     return this.musicMuted;
@@ -27,7 +33,12 @@ export class AudioManager {
 
   initialize(): void {
     this.initializeSfx();
+    this.musicRequested = true;
     this.initializeMusic();
+  }
+
+  dispose(): void {
+    this.removeAudioUnlock();
   }
 
   toggleMusicMute(): void {
@@ -134,6 +145,27 @@ export class AudioManager {
     if (this.context.state === "suspended") {
       void this.context.resume();
     }
+  }
+
+  private setupAudioUnlock(): void {
+    this.unlockHandler = () => {
+      this.initializeSfx();
+      if (this.musicRequested) {
+        this.initializeMusic();
+      }
+      this.playMusicIfAvailable();
+    };
+
+    window.addEventListener("keydown", this.unlockHandler);
+    window.addEventListener("pointerdown", this.unlockHandler);
+  }
+
+  private removeAudioUnlock(): void {
+    if (!this.unlockHandler) return;
+
+    window.removeEventListener("keydown", this.unlockHandler);
+    window.removeEventListener("pointerdown", this.unlockHandler);
+    this.unlockHandler = null;
   }
 
   private initializeMusic(): void {

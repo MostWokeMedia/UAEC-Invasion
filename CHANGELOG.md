@@ -21,6 +21,8 @@ All notable project changes should be documented here.
 - Extracted player drawing into `PlayerRenderer`.
 - Extracted tank drawing into `TankRenderer`.
 - Extracted enemy drawing into `EnemyRenderer`.
+- Extracted score popup drawing into `FloatingTextRenderer`.
+- Improved browser audio unlocking so SFX and music can recover from autoplay restrictions on key/click input.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 
 ### Moved
