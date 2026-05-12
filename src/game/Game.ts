@@ -3,6 +3,7 @@ import { AudioManager } from "./audio";
 import { AtmosphereRenderer } from "./atmosphereRenderer";
 import { BALANCE } from "./balance";
 import { BarricadeRenderer } from "./barricadeRenderer";
+import { BackgroundRenderer } from "./backgroundRenderer";
 import { SpriteManager } from "./assets";
 import { EffectsRenderer } from "./effectsRenderer";
 import { EnemyRenderer } from "./enemyRenderer";
@@ -38,8 +39,6 @@ import type {
 export class Game {
   private static readonly HIGH_SCORE_KEY = "uaec-invasion-high-score";
 
-  private backgroundImage = new Image();
-  private backgroundLoaded = false;
   private mode: GameMode = "start";
   private score = 0;
   private highScore = readNumber(Game.HIGH_SCORE_KEY, 0);
@@ -95,6 +94,7 @@ export class Game {
 
   private ctx: CanvasRenderingContext2D;
   private atmosphereRenderer: AtmosphereRenderer;
+  private backgroundRenderer: BackgroundRenderer;
   private barricadeRenderer: BarricadeRenderer;
   private effectsRenderer: EffectsRenderer;
   private enemyRenderer: EnemyRenderer;
@@ -115,6 +115,7 @@ export class Game {
   ) {
     this.ctx = ctx;
     this.atmosphereRenderer = new AtmosphereRenderer(ctx);
+    this.backgroundRenderer = new BackgroundRenderer(ctx);
     this.effectsRenderer = new EffectsRenderer(ctx, this.sprites);
     this.floatingTextRenderer = new FloatingTextRenderer(ctx);
     this.spriteRenderer = new SpriteRenderer(ctx);
@@ -143,10 +144,6 @@ export class Game {
     this.input = input;
     this.audio = audio;
     this.setupSpriteToggleHotkey();
-    this.backgroundImage.src = "/assets/backgrounds/citadel_street_hud_bg.png";
-    this.backgroundImage.onload = () => {
-      this.backgroundLoaded = true;
-    };
 
     this.sprites.loadAll();
     this.startWave();
@@ -897,21 +894,7 @@ export class Game {
   }
 
   private drawBackground(): void {
-    this.ctx.save();
-    this.ctx.imageSmoothingEnabled = false;
-
-    if (this.backgroundLoaded) {
-      this.ctx.drawImage(this.backgroundImage, 0, 0, WIDTH, HEIGHT);
-
-      // Small tint so sprites and background feel unified without hiding the art.
-      this.ctx.fillStyle = "rgba(2, 4, 10, 0.18)";
-      this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    } else {
-      this.ctx.fillStyle = "#050713";
-      this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    }
-
-    this.ctx.restore();
+    this.backgroundRenderer.draw();
   }
 
   private drawHud(): void {
