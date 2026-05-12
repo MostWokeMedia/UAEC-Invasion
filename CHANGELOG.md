@@ -16,6 +16,7 @@ All notable project changes should be documented here.
 - Extracted HUD drawing into `HudRenderer` while keeping HUD state owned by `Game`.
 - Extracted start, pause, transition, and game-over overlays into `ScreenRenderer`.
 - Extracted rain, CRT, vignette, and gameplay readability overlays into `AtmosphereRenderer`.
+- Extracted projectile and explosion drawing into `EffectsRenderer`.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 
 ### Moved

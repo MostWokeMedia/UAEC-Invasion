@@ -4,6 +4,7 @@ import { AtmosphereRenderer } from "./atmosphereRenderer";
 import { BALANCE } from "./balance";
 import { SpriteManager } from "./assets";
 import type { SpriteKey } from "./assets";
+import { EffectsRenderer } from "./effectsRenderer";
 import { InputManager } from "./input";
 import {
   getFormationStepDelay,
@@ -15,7 +16,6 @@ import {
   ENEMY_SPRITE,
   EXPLOSION_SPRITE,
   PLAYER_SPRITE,
-  PROJECTILE_SPRITE,
   TANK_SPRITE,
 } from "./rendering";
 import { ScreenRenderer } from "./screenRenderer";
@@ -96,6 +96,7 @@ export class Game {
 
   private ctx: CanvasRenderingContext2D;
   private atmosphereRenderer: AtmosphereRenderer;
+  private effectsRenderer: EffectsRenderer;
   private spriteRenderer: SpriteRenderer;
   private hudRenderer: HudRenderer;
   private screenRenderer: ScreenRenderer;
@@ -110,6 +111,7 @@ export class Game {
   ) {
     this.ctx = ctx;
     this.atmosphereRenderer = new AtmosphereRenderer(ctx);
+    this.effectsRenderer = new EffectsRenderer(ctx, this.sprites);
     this.spriteRenderer = new SpriteRenderer(ctx);
     this.hudRenderer = new HudRenderer(ctx, this.sprites, this.spriteRenderer);
     this.screenRenderer = new ScreenRenderer(ctx, this.sprites);
@@ -1243,109 +1245,14 @@ export class Game {
   }
 
   private drawProjectiles(): void {
-    this.drawPlayerMissile();
-    this.drawEnemyProjectiles();
-  }
-
-  private drawPlayerMissile(): void {
-    if (!this.playerMissile) return;
-
-    const missileSprite = this.sprites.get("playerMissile");
-
-    if (missileSprite) {
-      this.ctx.save();
-      this.ctx.imageSmoothingEnabled = false;
-      this.ctx.drawImage(
-        missileSprite,
-        this.playerMissile.x + PROJECTILE_SPRITE.playerXOffset,
-        this.playerMissile.y + PROJECTILE_SPRITE.playerYOffset,
-        PROJECTILE_SPRITE.playerWidth,
-        PROJECTILE_SPRITE.playerHeight,
-      );
-      this.ctx.restore();
-      return;
-    }
-
-    this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillRect(
-      this.playerMissile.x,
-      this.playerMissile.y,
-      this.playerMissile.width,
-      this.playerMissile.height,
+    this.effectsRenderer.drawProjectiles(
+      this.playerMissile,
+      this.enemyProjectiles,
     );
-
-    this.ctx.fillStyle = "#ff7a3d";
-    this.ctx.fillRect(this.playerMissile.x - 2, this.playerMissile.y + 14, 10, 8);
-  }
-
-  private drawEnemyProjectiles(): void {
-    const enemyProjectileSprite = this.sprites.get("enemyProjectile");
-
-    for (const projectile of this.enemyProjectiles) {
-      if (enemyProjectileSprite) {
-        this.ctx.save();
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.drawImage(
-          enemyProjectileSprite,
-          projectile.x + PROJECTILE_SPRITE.enemyXOffset,
-          projectile.y + PROJECTILE_SPRITE.enemyYOffset,
-          PROJECTILE_SPRITE.enemyWidth,
-          PROJECTILE_SPRITE.enemyHeight,
-        );
-        this.ctx.restore();
-        continue;
-      }
-
-      this.ctx.fillStyle = "#ff355d";
-      this.ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
-    }
   }
 
   private drawExplosions(): void {
-    for (const explosion of this.explosions) {
-      const progress = 1 - explosion.lifeMs / explosion.totalLifeMs;
-      const spriteKey =
-        progress < 0.34 ? "explosion1" : progress < 0.67 ? "explosion2" : "explosion3";
-      const sprite = this.sprites.get(spriteKey);
-
-      if (sprite) {
-        this.ctx.save();
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.globalAlpha = Math.max(0, explosion.lifeMs / explosion.totalLifeMs);
-        this.ctx.drawImage(sprite, explosion.x, explosion.y, explosion.width, explosion.height);
-        this.ctx.restore();
-        continue;
-      }
-
-      this.drawPlaceholderExplosion(explosion, progress);
-    }
-  }
-
-  private drawPlaceholderExplosion(explosion: Explosion, progress: number): void {
-    const centerX = explosion.x + explosion.width / 2;
-    const centerY = explosion.y + explosion.height / 2;
-    const alpha = Math.max(0, explosion.lifeMs / explosion.totalLifeMs);
-    const radius = 8 + progress * Math.max(explosion.width, explosion.height) * 0.42;
-
-    this.ctx.save();
-    this.ctx.globalAlpha = alpha;
-
-    this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillRect(centerX - 6, centerY - 6, 12, 12);
-
-    this.ctx.fillStyle = "#ff7a3d";
-    this.ctx.fillRect(centerX - radius * 0.9, centerY - 4, 14, 8);
-    this.ctx.fillRect(centerX + radius * 0.55, centerY - 4, 14, 8);
-    this.ctx.fillRect(centerX - 4, centerY - radius * 0.75, 8, 14);
-    this.ctx.fillRect(centerX - 4, centerY + radius * 0.55, 8, 14);
-
-    this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillRect(centerX - radius * 0.55, centerY - radius * 0.45, 12, 12);
-    this.ctx.fillRect(centerX + radius * 0.35, centerY - radius * 0.38, 12, 12);
-    this.ctx.fillRect(centerX - radius * 0.35, centerY + radius * 0.32, 12, 12);
-    this.ctx.fillRect(centerX + radius * 0.18, centerY + radius * 0.38, 12, 12);
-
-    this.ctx.restore();
+    this.effectsRenderer.drawExplosions(this.explosions);
   }
 
   private drawFloatingTexts(): void {
