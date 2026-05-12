@@ -19,6 +19,7 @@ All notable project changes should be documented here.
 - Extracted projectile and explosion drawing into `EffectsRenderer`.
 - Extracted barricade drawing into `BarricadeRenderer`.
 - Extracted player drawing into `PlayerRenderer`.
+- Extracted tank drawing into `TankRenderer`.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 
 ### Moved

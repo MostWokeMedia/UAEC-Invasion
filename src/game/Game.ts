@@ -17,11 +17,11 @@ import { HudRenderer } from "./hudRenderer";
 import {
   ENEMY_SPRITE,
   EXPLOSION_SPRITE,
-  TANK_SPRITE,
 } from "./rendering";
 import { ScreenRenderer } from "./screenRenderer";
 import { SpriteRenderer } from "./spriteRenderer";
 import { readNumber, writeNumber } from "./storage";
+import { TankRenderer } from "./tankRenderer";
 import { clamp, rectsOverlap } from "./utils";
 import type {
   BarricadeBlock,
@@ -103,6 +103,7 @@ export class Game {
   private hudRenderer: HudRenderer;
   private playerRenderer: PlayerRenderer;
   private screenRenderer: ScreenRenderer;
+  private tankRenderer: TankRenderer;
   private input: InputManager;
   private audio: AudioManager;
   private spriteToggleHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -128,6 +129,11 @@ export class Game {
       this.spriteRenderer,
     );
     this.screenRenderer = new ScreenRenderer(ctx, this.sprites);
+    this.tankRenderer = new TankRenderer(
+      ctx,
+      this.sprites,
+      this.spriteRenderer,
+    );
     this.input = input;
     this.audio = audio;
     this.setupSpriteToggleHotkey();
@@ -1109,79 +1115,7 @@ export class Game {
   }
 
   private drawTank(): void {
-    if (!this.tank.active) return;
-
-    const tankSprite = this.sprites.get("uaecTank");
-
-    if (tankSprite) {
-      const drawWidth = this.tank.width;
-      const drawHeight = this.tank.height + TANK_SPRITE.extraHeight;
-      const drawX = this.tank.x;
-      const drawY = this.tank.y + TANK_SPRITE.yOffset;
-
-      this.ctx.save();
-
-      if (this.tank.direction === -1) {
-        this.ctx.translate(drawX + drawWidth, 0);
-        this.ctx.scale(-1, 1);
-
-        this.spriteRenderer.drawImageWithGlow(
-          "uaecTank",
-          tankSprite,
-          0,
-          drawY,
-          drawWidth,
-          drawHeight,
-          "rgba(255, 79, 154, 0.82)",
-          14,
-          0.72,
-        );
-      } else {
-        this.spriteRenderer.drawImageWithGlow(
-          "uaecTank",
-          tankSprite,
-          drawX,
-          drawY,
-          drawWidth,
-          drawHeight,
-          "rgba(255, 79, 154, 0.82)",
-          14,
-          0.72,
-        );
-      }
-
-      this.ctx.restore();
-      return;
-    }
-
-    // Placeholder fallback if the tank sprite is missing or disabled.
-    this.ctx.save();
-
-    this.ctx.fillStyle = "#111827";
-    this.ctx.fillRect(this.tank.x, this.tank.y, this.tank.width, this.tank.height);
-
-    this.ctx.fillStyle = "#1f2937";
-    this.ctx.fillRect(
-      this.tank.x + 16,
-      this.tank.y - 10,
-      this.tank.width * 0.45,
-      this.tank.height * 0.55,
-    );
-
-    this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillRect(
-      this.tank.x + this.tank.width * 0.16,
-      this.tank.y + this.tank.height * 0.36,
-      this.tank.width * 0.22,
-      4,
-    );
-
-    this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.font = "16px 'Courier New', monospace";
-    this.ctx.textAlign = "center";
-    this.ctx.fillText("UAEC", this.tank.x + this.tank.width / 2, this.tank.y + 28);
-
-    this.ctx.restore();
+    this.tankRenderer.draw(this.tank);
   }
 
 
