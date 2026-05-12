@@ -18,6 +18,7 @@ All notable project changes should be documented here.
 - Extracted rain, CRT, vignette, and gameplay readability overlays into `AtmosphereRenderer`.
 - Extracted projectile and explosion drawing into `EffectsRenderer`.
 - Extracted barricade drawing into `BarricadeRenderer`.
+- Extracted player drawing into `PlayerRenderer`.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 
 ### Moved

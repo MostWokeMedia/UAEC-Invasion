@@ -7,6 +7,7 @@ import { SpriteManager } from "./assets";
 import type { SpriteKey } from "./assets";
 import { EffectsRenderer } from "./effectsRenderer";
 import { InputManager } from "./input";
+import { PlayerRenderer } from "./playerRenderer";
 import {
   getFormationStepDelay,
   getTankScore,
@@ -16,7 +17,6 @@ import { HudRenderer } from "./hudRenderer";
 import {
   ENEMY_SPRITE,
   EXPLOSION_SPRITE,
-  PLAYER_SPRITE,
   TANK_SPRITE,
 } from "./rendering";
 import { ScreenRenderer } from "./screenRenderer";
@@ -101,6 +101,7 @@ export class Game {
   private effectsRenderer: EffectsRenderer;
   private spriteRenderer: SpriteRenderer;
   private hudRenderer: HudRenderer;
+  private playerRenderer: PlayerRenderer;
   private screenRenderer: ScreenRenderer;
   private input: InputManager;
   private audio: AudioManager;
@@ -121,6 +122,11 @@ export class Game {
       this.spriteRenderer,
     );
     this.hudRenderer = new HudRenderer(ctx, this.sprites, this.spriteRenderer);
+    this.playerRenderer = new PlayerRenderer(
+      ctx,
+      this.sprites,
+      this.spriteRenderer,
+    );
     this.screenRenderer = new ScreenRenderer(ctx, this.sprites);
     this.input = input;
     this.audio = audio;
@@ -908,48 +914,7 @@ export class Game {
   }
 
   private drawPlayer(): void {
-    if (this.player.invulnerableMs > 0 && Math.floor(this.player.invulnerableMs / 120) % 2 === 0) {
-      return;
-    }
-
-    const firingSprite = this.sprites.get("playerFire");
-    const idleSprite = this.sprites.get("playerIdle");
-    const playerSprite = this.playerFireFlashMs > 0 && firingSprite ? firingSprite : idleSprite;
-
-    if (playerSprite) {
-      const drawWidth = PLAYER_SPRITE.width;
-      const drawHeight = PLAYER_SPRITE.height;
-      const drawX =
-        this.player.x + this.player.width / 2 - drawWidth / 2 + PLAYER_SPRITE.xOffset;
-      const drawY =
-        this.player.y + this.player.height - drawHeight + PLAYER_SPRITE.yOffset;
-
-      this.spriteRenderer.drawImage(
-        this.playerFireFlashMs > 0 && firingSprite ? "playerFire" : "playerIdle",
-        playerSprite,
-        drawX,
-        drawY,
-        drawWidth,
-        drawHeight,
-      );
-      return;
-    }
-
-    this.drawPlaceholderPlayer();
-  }
-
-  private drawPlaceholderPlayer(): void {
-    this.ctx.fillStyle = "#202838";
-    this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
-
-    this.ctx.fillStyle = "#566176";
-    this.ctx.fillRect(this.player.x + 12, this.player.y - 22, 24, 24);
-
-    this.ctx.fillStyle = "#c9d3e8";
-    this.ctx.fillRect(this.player.x + this.player.width / 2 - 6, this.player.y - 48, 12, 46);
-
-    this.ctx.fillStyle = this.playerFireFlashMs > 0 ? "#fff7d6" : "#ff4f9a";
-    this.ctx.fillRect(this.player.x + 14, this.player.y - 30, 20, 5);
+    this.playerRenderer.draw(this.player, this.playerFireFlashMs);
   }
 
   private drawEnemies(): void {
