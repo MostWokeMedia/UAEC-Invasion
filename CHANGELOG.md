@@ -13,6 +13,7 @@ All notable project changes should be documented here.
 - Added cleanup hooks for global keyboard listeners and Vite hot reload.
 - Extracted pure gameplay helpers for formation timing, wave advance, and tank scoring.
 - Extracted cached sprite drawing into `SpriteRenderer` so `Game` owns less rendering infrastructure.
+- Extracted HUD drawing into `HudRenderer` while keeping HUD state owned by `Game`.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 
 ### Moved
