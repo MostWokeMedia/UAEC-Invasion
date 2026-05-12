@@ -1,4 +1,4 @@
-import { COLS, HEIGHT, ROWS, TOTAL_ENEMIES, WIDTH } from "./constants";
+import { COLS, HEIGHT, TOTAL_ENEMIES, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
 import { AtmosphereRenderer } from "./atmosphereRenderer";
 import { BALANCE } from "./balance";
@@ -11,6 +11,8 @@ import { FloatingTextRenderer } from "./floatingTextRenderer";
 import { InputManager } from "./input";
 import { PlayerRenderer } from "./playerRenderer";
 import {
+  createBarricades,
+  createEnemies,
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
@@ -326,8 +328,8 @@ export class Game {
   }
 
   private startWave(): void {
-    this.enemies = this.createEnemies();
-    this.barricadeBlocks = this.createBarricades();
+    this.enemies = createEnemies();
+    this.barricadeBlocks = createBarricades();
     this.playerMissile = null;
     this.enemyProjectiles = [];
     this.floatingTexts = [];
@@ -363,63 +365,6 @@ export class Game {
         BALANCE.tank.firstSpawnMinMs +
         Math.random() * BALANCE.tank.firstSpawnRandomBonusMs,
     };
-  }
-
-  private createEnemies(): Enemy[] {
-    const enemies: Enemy[] = [];
-
-    for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const type: EnemyType = row === 0 ? "armored" : row <= 2 ? "shield" : "officer";
-        const score =
-          type === "armored"
-            ? BALANCE.scoring.armored
-            : type === "shield"
-              ? BALANCE.scoring.shield
-              : BALANCE.scoring.officer;
-
-        enemies.push({
-          id: `${row}-${col}`,
-          type,
-          row,
-          col,
-          alive: true,
-          score,
-        });
-      }
-    }
-
-    return enemies;
-  }
-
-  private createBarricades(): BarricadeBlock[] {
-    const blocks: BarricadeBlock[] = [];
-    const barricadeCenters = [190, 385, 575, 770];
-
-    for (const centerX of barricadeCenters) {
-      const blockSize = 16;
-      const startX = centerX - blockSize * 3;
-      const startY = 592;
-
-      for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 6; col++) {
-          const isGap = row === 2 && (col === 2 || col === 3);
-
-          if (!isGap) {
-            blocks.push({
-              x: startX + col * blockSize,
-              y: startY + row * blockSize,
-              width: blockSize - 2,
-              height: blockSize - 2,
-              hp: 2,
-              active: true,
-            });
-          }
-        }
-      }
-    }
-
-    return blocks;
   }
 
   private updatePlayer(dtMs: number): void {
