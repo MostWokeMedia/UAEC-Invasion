@@ -17,6 +17,7 @@ import {
   PROJECTILE_SPRITE,
   TANK_SPRITE,
 } from "./rendering";
+import { SpriteRenderer } from "./spriteRenderer";
 import { readNumber, writeNumber } from "./storage";
 import { clamp, rectsOverlap } from "./utils";
 import type {
@@ -47,7 +48,6 @@ export class Game {
   private playerShotCount = 0;
   private earnedNewHighScore = false;
   private sprites = new SpriteManager();
-  private spriteRenderCache = new Map<string, HTMLCanvasElement>();
 
   private player: Player = {
     x: WIDTH / 2 - 24,
@@ -93,6 +93,7 @@ export class Game {
   private nextTankDirection: Direction = -1;
 
   private ctx: CanvasRenderingContext2D;
+  private spriteRenderer: SpriteRenderer;
   private input: InputManager;
   private audio: AudioManager;
   private spriteToggleHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -103,6 +104,7 @@ export class Game {
     audio: AudioManager,
   ) {
     this.ctx = ctx;
+    this.spriteRenderer = new SpriteRenderer(ctx);
     this.input = input;
     this.audio = audio;
     this.setupSpriteToggleHotkey();
@@ -967,7 +969,7 @@ private drawGameplayReadabilityVeil(): void {
       const y = 38;
 
       if (lifeHeadSprite) {
-        this.drawCachedImage("citizenLifeHead", lifeHeadSprite, x, y, 30, 30);
+        this.spriteRenderer.drawImage("citizenLifeHead", lifeHeadSprite, x, y, 30, 30);
         continue;
       }
 
@@ -1012,7 +1014,7 @@ private drawGameplayReadabilityVeil(): void {
       const drawY =
         this.player.y + this.player.height - drawHeight + PLAYER_SPRITE.yOffset;
 
-      this.drawCachedImage(
+      this.spriteRenderer.drawImage(
         this.playerFireFlashMs > 0 && firingSprite ? "playerFire" : "playerIdle",
         playerSprite,
         drawX,
@@ -1038,94 +1040,6 @@ private drawGameplayReadabilityVeil(): void {
 
     this.ctx.fillStyle = this.playerFireFlashMs > 0 ? "#fff7d6" : "#ff4f9a";
     this.ctx.fillRect(this.player.x + 14, this.player.y - 30, 20, 5);
-  }
-
-  private drawCachedImage(
-    cacheKeyBase: string,
-    image: HTMLImageElement,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ): void {
-    const drawWidth = Math.max(1, Math.round(width));
-    const drawHeight = Math.max(1, Math.round(height));
-    const cacheKey = `${cacheKeyBase}:${drawWidth}x${drawHeight}`;
-
-    let cachedCanvas = this.spriteRenderCache.get(cacheKey);
-
-    if (!cachedCanvas) {
-      cachedCanvas = document.createElement("canvas");
-      cachedCanvas.width = drawWidth;
-      cachedCanvas.height = drawHeight;
-
-      const cachedCtx = cachedCanvas.getContext("2d");
-
-      if (!cachedCtx) return;
-
-      cachedCtx.imageSmoothingEnabled = false;
-      cachedCtx.drawImage(image, 0, 0, drawWidth, drawHeight);
-
-      this.spriteRenderCache.set(cacheKey, cachedCanvas);
-    }
-
-    this.ctx.drawImage(
-      cachedCanvas,
-      Math.round(x),
-      Math.round(y),
-      drawWidth,
-      drawHeight,
-    );
-  }
-
-  private drawCachedImageWithGlow(
-    cacheKeyBase: string,
-    image: HTMLImageElement,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    glowColor: string,
-    glowBlur: number,
-    glowAlpha: number,
-  ): void {
-    const drawWidth = Math.max(1, Math.round(width));
-    const drawHeight = Math.max(1, Math.round(height));
-    const padding = Math.ceil(glowBlur * 2);
-    const cacheKey = `${cacheKeyBase}:glow:${drawWidth}x${drawHeight}:${glowColor}:${glowBlur}:${glowAlpha}`;
-
-    let cachedCanvas = this.spriteRenderCache.get(cacheKey);
-
-    if (!cachedCanvas) {
-      cachedCanvas = document.createElement("canvas");
-      cachedCanvas.width = drawWidth + padding * 2;
-      cachedCanvas.height = drawHeight + padding * 2;
-
-      const cachedCtx = cachedCanvas.getContext("2d");
-
-      if (!cachedCtx) return;
-
-      cachedCtx.imageSmoothingEnabled = false;
-
-      // Expensive glow is rendered once into the cache, not every frame.
-      cachedCtx.save();
-      cachedCtx.globalAlpha = glowAlpha;
-      cachedCtx.shadowColor = glowColor;
-      cachedCtx.shadowBlur = glowBlur;
-      cachedCtx.drawImage(image, padding, padding, drawWidth, drawHeight);
-      cachedCtx.restore();
-
-      // Crisp sprite on top of the cached glow.
-      cachedCtx.drawImage(image, padding, padding, drawWidth, drawHeight);
-
-      this.spriteRenderCache.set(cacheKey, cachedCanvas);
-    }
-
-    this.ctx.drawImage(
-      cachedCanvas,
-      Math.round(x) - padding,
-      Math.round(y) - padding,
-    );
   }
 
   private drawEnemies(): void {
@@ -1183,7 +1097,7 @@ private drawGameplayReadabilityVeil(): void {
               : "rgba(255, 79, 154, 0.82)";
         const enemyGlowBlur = enemy.type === "armored" ? 11 : enemy.type === "shield" ? 9 : 7;
 
-        this.drawCachedImageWithGlow(
+        this.spriteRenderer.drawImageWithGlow(
           spriteKey,
           enemySprite,
           drawX,
@@ -1198,7 +1112,7 @@ private drawGameplayReadabilityVeil(): void {
       // Crisp readable sprite pass.
       this.ctx.globalAlpha = 1;
       this.ctx.filter = "brightness(1.17) contrast(1.13) saturate(1.05)";
-      this.drawCachedImage(spriteKey, enemySprite, drawX, drawY, drawWidth, drawHeight);
+      this.spriteRenderer.drawImage(spriteKey, enemySprite, drawX, drawY, drawWidth, drawHeight);
       this.ctx.filter = "none";
       this.ctx.restore();
 
@@ -1336,7 +1250,7 @@ private drawGameplayReadabilityVeil(): void {
         this.ctx.translate(drawX + drawWidth, 0);
         this.ctx.scale(-1, 1);
 
-        this.drawCachedImageWithGlow(
+        this.spriteRenderer.drawImageWithGlow(
           "uaecTank",
           tankSprite,
           0,
@@ -1348,7 +1262,7 @@ private drawGameplayReadabilityVeil(): void {
           0.72,
         );
       } else {
-        this.drawCachedImageWithGlow(
+        this.spriteRenderer.drawImageWithGlow(
           "uaecTank",
           tankSprite,
           drawX,
@@ -1406,7 +1320,7 @@ private drawGameplayReadabilityVeil(): void {
       const sprite = block.hp === 2 ? fullBlockSprite : damagedBlockSprite;
 
       if (sprite) {
-        this.drawCachedImage(
+        this.spriteRenderer.drawImage(
           block.hp === 2 ? "barricadeFull" : "barricadeDamaged",
           sprite,
           block.x,
