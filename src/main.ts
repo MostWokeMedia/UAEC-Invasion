@@ -35,6 +35,7 @@ ctx.imageSmoothingEnabled = false;
 const input = new InputManager();
 const audio = new AudioManager();
 const game = new Game(ctx, input, audio);
+let animationFrameId = 0;
 
 let lastTimestamp = performance.now();
 
@@ -46,7 +47,15 @@ function loop(timestamp: number): void {
   input.clearPressed();
   game.render();
 
-  requestAnimationFrame(loop);
+  animationFrameId = requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(loop);
+animationFrameId = requestAnimationFrame(loop);
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    cancelAnimationFrame(animationFrameId);
+    game.dispose();
+    input.dispose();
+  });
+}

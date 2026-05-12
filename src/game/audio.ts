@@ -1,10 +1,15 @@
+import { readBoolean, writeBoolean } from "./storage";
+
+const MUSIC_MUTED_KEY = "uaec-music-muted";
+const SFX_MUTED_KEY = "uaec-sfx-muted";
+
 export class AudioManager {
   private context: AudioContext | null = null;
   private sfxGain: GainNode | null = null;
   private music: HTMLAudioElement | null = null;
 
-  private musicMuted = false;
-  private sfxMuted = false;
+  private musicMuted = readBoolean(MUSIC_MUTED_KEY, false);
+  private sfxMuted = readBoolean(SFX_MUTED_KEY, false);
   private musicLoadFailed = false;
   private musicPausedForGame = false;
 
@@ -27,7 +32,7 @@ export class AudioManager {
 
   toggleMusicMute(): void {
     this.musicMuted = !this.musicMuted;
-    localStorage.setItem("uaec-music-muted", String(this.musicMuted));
+    writeBoolean(MUSIC_MUTED_KEY, this.musicMuted);
 
     if (!this.music) return;
 
@@ -59,6 +64,7 @@ export class AudioManager {
 
   toggleSfxMute(): void {
     this.sfxMuted = !this.sfxMuted;
+    writeBoolean(SFX_MUTED_KEY, this.sfxMuted);
 
     if (this.sfxGain) {
       this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.40;

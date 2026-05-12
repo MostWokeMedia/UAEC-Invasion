@@ -6,12 +6,18 @@ import type { SpriteKey } from "./assets";
 import { InputManager } from "./input";
 import { BUILD_LABEL } from "./metadata";
 import {
+  getFormationStepDelay,
+  getTankScore,
+  getWaveStartingAdvance,
+} from "./gameplay";
+import {
   ENEMY_SPRITE,
   EXPLOSION_SPRITE,
   PLAYER_SPRITE,
   PROJECTILE_SPRITE,
   TANK_SPRITE,
 } from "./rendering";
+import { readNumber, writeNumber } from "./storage";
 import { clamp, rectsOverlap } from "./utils";
 import type {
   BarricadeBlock,
@@ -28,11 +34,13 @@ import type {
 } from "./types";
 
 export class Game {
+  private static readonly HIGH_SCORE_KEY = "uaec-invasion-high-score";
+
   private backgroundImage = new Image();
   private backgroundLoaded = false;
   private mode: GameMode = "start";
   private score = 0;
-  private highScore = Number(localStorage.getItem("uaec-invasion-high-score") || 0);
+  private highScore = readNumber(Game.HIGH_SCORE_KEY, 0);
   private wave = 1;
   private lives = 3;
   private modeTimerMs = 0;
@@ -46,7 +54,7 @@ export class Game {
     y: HEIGHT - 78,
     width: 48,
     height: 38,
-    speed: 310,
+    speed: BALANCE.player.speed,
     invulnerableMs: 0,
   };
 
@@ -69,7 +77,7 @@ export class Game {
     animationFrame: 0,
   };
 
-  private enemyShotCooldownMs = 1500;
+  private enemyShotCooldownMs: number = BALANCE.enemies.startingShotCooldownMs;
 
   private tank: Tank = {
     active: false,
@@ -78,7 +86,7 @@ export class Game {
     width: 130,
     height: 42,
     direction: 1,
-    speed: 72,
+    speed: BALANCE.tank.baseSpeed,
     spawnTimerMs: 14000,
   };
 
@@ -87,6 +95,7 @@ export class Game {
   private ctx: CanvasRenderingContext2D;
   private input: InputManager;
   private audio: AudioManager;
+  private spriteToggleHandler: ((event: KeyboardEvent) => void) | null = null;
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -107,7 +116,7 @@ export class Game {
   }
 
   private setupSpriteToggleHotkey(): void {
-    window.addEventListener("keydown", (event) => {
+    this.spriteToggleHandler = (event) => {
       const isSpriteToggle =
         event.code === "KeyT" || event.key.toLowerCase() === "t";
 
@@ -119,7 +128,16 @@ export class Game {
       console.info(
         `UAEC Invasion sprites: ${this.sprites.isEnabled ? "ON" : "OFF"}`,
       );
-    });
+    };
+
+    window.addEventListener("keydown", this.spriteToggleHandler);
+  }
+
+  dispose(): void {
+    if (this.spriteToggleHandler) {
+      window.removeEventListener("keydown", this.spriteToggleHandler);
+      this.spriteToggleHandler = null;
+    }
   }
 
   update(dtMs: number): void {
@@ -179,7 +197,7 @@ export class Game {
           this.mode = "game-over";
         } else {
           this.mode = "playing";
-          this.player.invulnerableMs = 1600;
+          this.player.invulnerableMs = BALANCE.player.hitInvulnerableMs;
         }
       }
       this.updateFloatingTexts(dtMs);
@@ -283,7 +301,7 @@ export class Game {
 
     this.player.x = WIDTH / 2 - this.player.width / 2;
     this.player.y = HEIGHT - 78;
-    this.player.invulnerableMs = 1200;
+    this.player.invulnerableMs = BALANCE.player.respawnInvulnerableMs;
 
     const startingAdvance = this.getWaveStartingAdvance();
 
@@ -296,7 +314,7 @@ export class Game {
       animationFrame: 0,
     };
 
-    this.enemyShotCooldownMs = 1600;
+    this.enemyShotCooldownMs = BALANCE.enemies.startingShotCooldownMs;
     this.playerShotCount = 0;
 
     this.tank = {
@@ -306,8 +324,10 @@ export class Game {
       width: 130,
       height: 42,
       direction: 1,
-      speed: 72,
-      spawnTimerMs: 12000 + Math.random() * 8000,
+      speed: BALANCE.tank.baseSpeed,
+      spawnTimerMs:
+        BALANCE.tank.firstSpawnMinMs +
+        Math.random() * BALANCE.tank.firstSpawnRandomBonusMs,
     };
   }
 
@@ -317,7 +337,12 @@ export class Game {
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         const type: EnemyType = row === 0 ? "armored" : row <= 2 ? "shield" : "officer";
-        const score = type === "armored" ? 30 : type === "shield" ? 20 : 10;
+        const score =
+          type === "armored"
+            ? BALANCE.scoring.armored
+            : type === "shield"
+              ? BALANCE.scoring.shield
+              : BALANCE.scoring.officer;
 
         enemies.push({
           id: `${row}-${col}`,
@@ -389,10 +414,10 @@ export class Game {
       y: this.player.y - 16,
       width: 6,
       height: 18,
-      speedY: -285,
+      speedY: BALANCE.player.missileSpeed,
     };
 
-    this.playerFireFlashMs = 140;
+    this.playerFireFlashMs = BALANCE.player.fireFlashMs;
     this.audio.playShoot();
   }
 
@@ -408,14 +433,18 @@ export class Game {
     this.formation.animationFrame = this.formation.animationFrame === 0 ? 1 : 0;
 
     const attemptedDirection = this.formation.direction;
-    this.formation.xOffset += attemptedDirection * 20;
+    this.formation.xOffset += attemptedDirection * BALANCE.formation.sideStep;
 
     const bounds = this.getFormationBounds();
 
-    if (bounds && (bounds.x < 44 || bounds.x + bounds.width > WIDTH - 44)) {
-      this.formation.xOffset -= attemptedDirection * 20;
+    if (
+      bounds &&
+      (bounds.x < BALANCE.formation.leftBoundary ||
+        bounds.x + bounds.width > WIDTH - BALANCE.formation.rightBoundaryPadding)
+    ) {
+      this.formation.xOffset -= attemptedDirection * BALANCE.formation.sideStep;
       this.formation.direction *= -1;
-      this.formation.yAdvance += 20;
+      this.formation.yAdvance += BALANCE.formation.advanceStep;
     }
 
     this.audio.playHeartbeat(aliveCount);
@@ -424,7 +453,7 @@ export class Game {
   private updateEnemyShooting(dtMs: number): void {
     this.enemyShotCooldownMs -= dtMs;
 
-    if (this.enemyProjectiles.length >= 3) return;
+    if (this.enemyProjectiles.length >= BALANCE.enemies.maxActiveProjectiles) return;
     if (this.enemyShotCooldownMs > 0) return;
 
     const shooter = this.chooseEnemyShooter();
@@ -438,11 +467,20 @@ export class Game {
       y: rect.y + rect.height,
       width: 8,
       height: 18,
-      speedY: 130 + this.wave * 8,
+      speedY:
+        BALANCE.enemies.baseProjectileSpeed +
+        this.wave * BALANCE.enemies.projectileSpeedPerWave,
     });
 
     const aliveCount = this.getAliveEnemies().length;
-    this.enemyShotCooldownMs = Math.max(480, 1600 - (TOTAL_ENEMIES - aliveCount) * 28) + Math.random() * 650;
+    this.enemyShotCooldownMs =
+      Math.max(
+        BALANCE.enemies.minimumShotCooldownMs,
+        BALANCE.enemies.startingShotCooldownMs -
+          (TOTAL_ENEMIES - aliveCount) *
+            BALANCE.enemies.cooldownReductionPerEnemyKilledMs,
+      ) +
+      Math.random() * BALANCE.enemies.randomCooldownBonusMs;
   }
 
   private updateTank(dtMs: number): void {
@@ -453,12 +491,16 @@ export class Game {
 
       if (this.tank.direction === 1 && this.tank.x > WIDTH + 170) {
         this.tank.active = false;
-        this.tank.spawnTimerMs = 20000 + Math.random() * 9000;
+        this.tank.spawnTimerMs =
+          BALANCE.tank.respawnMinMs +
+          Math.random() * BALANCE.tank.respawnRandomBonusMs;
       }
 
       if (this.tank.direction === -1 && this.tank.x < -190) {
         this.tank.active = false;
-        this.tank.spawnTimerMs = 20000 + Math.random() * 9000;
+        this.tank.spawnTimerMs =
+          BALANCE.tank.respawnMinMs +
+          Math.random() * BALANCE.tank.respawnRandomBonusMs;
       }
 
       return;
@@ -477,7 +519,7 @@ export class Game {
         y: 112,
         width: 130,
         height: 42,
-        speed: 72 + this.wave * 4,
+        speed: BALANCE.tank.baseSpeed + this.wave * BALANCE.tank.speedPerWave,
         spawnTimerMs: 0,
       };
     }
@@ -520,7 +562,7 @@ export class Game {
     }
 
     if (this.tank.active && rectsOverlap(this.playerMissile, this.tank)) {
-      const tankScore = this.getTankScore();
+      const tankScore = getTankScore(this.playerShotCount);
       this.addScore(tankScore);
       this.floatingTexts.push({
         text: `+${tankScore}`,
@@ -542,7 +584,10 @@ export class Game {
 
       this.playerMissile = null;
       this.tank.active = false;
-      this.tank.spawnTimerMs = 21000 + Math.random() * 9000;
+      this.tank.spawnTimerMs =
+        BALANCE.tank.respawnMinMs +
+        1000 +
+        Math.random() * BALANCE.tank.respawnRandomBonusMs;
       this.audio.playTankHit();
       return;
     }
@@ -618,7 +663,7 @@ export class Game {
         this.enemyProjectiles = [];
         this.playerMissile = null;
         this.mode = "player-hit";
-        this.modeTimerMs = 1100;
+        this.modeTimerMs = BALANCE.screens.playerHitPauseMs;
         this.audio.playPlayerHit();
         return;
       }
@@ -632,14 +677,14 @@ export class Game {
   private checkWaveAndLossConditions(): void {
     if (this.getAliveEnemies().length === 0) {
       this.mode = "wave-clear";
-      this.modeTimerMs = 1600;
+      this.modeTimerMs = BALANCE.screens.waveClearPauseMs;
       this.playerMissile = null;
       this.enemyProjectiles = [];
       this.audio.playWaveClear();
       return;
     }
 
-    const dangerLineY = HEIGHT - 105;
+    const dangerLineY = HEIGHT - BALANCE.danger.playerDangerLineOffset;
 
     for (const enemy of this.getAliveEnemies()) {
       const rect = this.getEnemyRect(enemy);
@@ -698,38 +743,11 @@ export class Game {
   }
 
   private getFormationStepDelay(aliveCount: number): number {
-    const wavePressure = Math.min(Math.max(this.wave - 3, 0) * 8, 80);
-
-    let baseDelay: number;
-
-    if (aliveCount <= 1) baseDelay = 90;
-    else if (aliveCount <= 3) baseDelay = 160;
-    else if (aliveCount <= 7) baseDelay = 260;
-    else if (aliveCount <= 14) baseDelay = 430;
-    else if (aliveCount <= 21) baseDelay = 600;
-    else if (aliveCount <= 28) baseDelay = 750;
-    else baseDelay = 900;
-
-    return Math.max(80, baseDelay - wavePressure);
+    return getFormationStepDelay(aliveCount, this.wave);
   }
 
   private getWaveStartingAdvance(): number {
-    // Waves may start lower as difficulty ramps, but never lower than Wave 9.
-    // Enemy movement speed can continue increasing separately.
-    const cappedWaveForStartHeight = Math.min(this.wave, 9);
-
-    if (cappedWaveForStartHeight <= 2) return 0;
-
-    return Math.min((cappedWaveForStartHeight - 2) * 6, 42);
-  }
-
-
-  private getTankScore(): number {
-    if (this.playerShotCount === 23) return 300;
-    if (this.playerShotCount > 23 && (this.playerShotCount - 23) % 15 === 0) return 300;
-
-    const fallbackScores = [50, 100, 150];
-    return fallbackScores[Math.floor(Math.random() * fallbackScores.length)];
+    return getWaveStartingAdvance(this.wave);
   }
 
   private addScore(points: number): void {
@@ -738,7 +756,7 @@ export class Game {
     if (this.score > this.highScore) {
       this.earnedNewHighScore = true;
       this.highScore = this.score;
-      localStorage.setItem("uaec-invasion-high-score", String(this.highScore));
+      writeNumber(Game.HIGH_SCORE_KEY, this.highScore);
     }
   }
 
@@ -1180,7 +1198,7 @@ private drawGameplayReadabilityVeil(): void {
       // Crisp readable sprite pass.
       this.ctx.globalAlpha = 1;
       this.ctx.filter = "brightness(1.17) contrast(1.13) saturate(1.05)";
-
+      this.drawCachedImage(spriteKey, enemySprite, drawX, drawY, drawWidth, drawHeight);
       this.ctx.filter = "none";
       this.ctx.restore();
 

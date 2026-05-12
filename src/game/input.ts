@@ -1,43 +1,52 @@
 export class InputManager {
   private keys = new Set<string>();
   private pressed = new Set<string>();
+  private handledKeys = new Set([
+    "KeyA",
+    "KeyD",
+    "ArrowLeft",
+    "ArrowRight",
+    "Space",
+    "Enter",
+    "KeyM",
+    "KeyN",
+    "KeyT",
+    "KeyP",
+    "KeyH",
+    "Escape",
+  ]);
 
   constructor() {
-    const handledKeys = new Set([
-      "KeyA",
-      "KeyD",
-      "ArrowLeft",
-      "ArrowRight",
-      "Space",
-      "Enter",
-      "KeyM",
-      "KeyN",
-      "KeyT",
-      "KeyP",
-      "KeyH",
-      "Escape",
-    ]);
-
-    window.addEventListener("keydown", (event) => {
-      if (handledKeys.has(event.code)) {
-        event.preventDefault();
-      }
-
-      if (!this.keys.has(event.code) && !event.repeat) {
-        this.pressed.add(event.code);
-      }
-
-      this.keys.add(event.code);
-    });
-
-    window.addEventListener("keyup", (event) => {
-      if (handledKeys.has(event.code)) {
-        event.preventDefault();
-      }
-
-      this.keys.delete(event.code);
-    });
+    window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("keyup", this.handleKeyUp);
   }
+
+  dispose(): void {
+    window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("keyup", this.handleKeyUp);
+    this.keys.clear();
+    this.pressed.clear();
+  }
+
+  private handleKeyDown = (event: KeyboardEvent): void => {
+    if (this.handledKeys.has(event.code)) {
+      event.preventDefault();
+    }
+
+    if (!this.keys.has(event.code) && !event.repeat) {
+      this.pressed.add(event.code);
+    }
+
+    this.keys.add(event.code);
+  };
+
+  private handleKeyUp = (event: KeyboardEvent): void => {
+    if (this.handledKeys.has(event.code)) {
+      event.preventDefault();
+    }
+
+    this.keys.delete(event.code);
+  };
 
   isLeftHeld(): boolean {
     return this.keys.has("KeyA") || this.keys.has("ArrowLeft");
