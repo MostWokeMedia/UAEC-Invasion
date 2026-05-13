@@ -82,6 +82,7 @@ Implemented:
 - HTML5 Canvas
 - Web Audio API
 - Browser `localStorage`
+- Supabase-ready leaderboard client
 - Vitest for lightweight logic tests
 
 ## Development Setup
@@ -109,6 +110,20 @@ Run verification:
 ```sh
 npm run verify
 ```
+
+Optional Supabase leaderboard setup:
+
+1. Create a Supabase project.
+2. Run `supabase/leaderboard.sql` in the Supabase SQL editor.
+3. Copy `.env.example` to `.env.local`.
+4. Set:
+
+```sh
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-browser-safe-publishable-or-anon-key
+```
+
+The game client uses Supabase row-level security and only needs the browser-safe publishable/anon key. Do not put a service-role key in `.env.local`.
 
 Build the project:
 
@@ -164,7 +179,8 @@ The current sprite pack is a test pipeline pack, not final production art.
 Next priorities:
 
 - Create cleaner individual final sprites
+- Add online leaderboard UI and 3-letter initials entry
 - Replace temporary test sprites
 - Improve Neo Tokyo / Citadel background
 - Add better explosion art
-- Add a stronger cyberpunk music loop
+- Add multiple stronger cyberpunk music loops
