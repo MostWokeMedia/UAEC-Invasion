@@ -35,6 +35,12 @@ import {
   updatePlayerMissile,
 } from "./gameplay";
 import { HudRenderer } from "./hudRenderer";
+import {
+  fetchLeaderboard,
+  isLeaderboardConfigured,
+  submitLeaderboardScore,
+  type LeaderboardEntry,
+} from "./leaderboard";
 import { EXPLOSION_SPRITE } from "./rendering";
 import { ScreenRenderer } from "./screenRenderer";
 import { SpriteRenderer } from "./spriteRenderer";
@@ -85,6 +91,15 @@ export class Game {
   private playerFireFlashMs = 0;
   private screenShakeMs = 0;
   private screenShakeStrength = 0;
+  private leaderboardInitials = "";
+  private leaderboardEntries: LeaderboardEntry[] = [];
+  private leaderboardStatus:
+    | "disabled"
+    | "entering"
+    | "submitting"
+    | "submitted"
+    | "failed" = isLeaderboardConfigured() ? "entering" : "disabled";
+  private leaderboardLoadStarted = false;
 
   private formation = {
     xOffset: 0,
@@ -153,7 +168,7 @@ export class Game {
       this.sprites,
       this.spriteRenderer,
     );
-    this.screenRenderer = new ScreenRenderer(ctx, this.sprites);
+    this.screenRenderer = new ScreenRenderer(ctx);
     this.tankRenderer = new TankRenderer(
       ctx,
       this.sprites,
@@ -233,12 +248,7 @@ export class Game {
     }
 
     if (this.mode === "game-over") {
-      const restartPressed = this.input.consume("Enter") || this.input.consume("Space");
-
-      if (restartPressed) {
-        this.audio.initialize();
-        this.startNewGame();
-      }
+      this.updateGameOver();
       return;
     }
 
@@ -246,7 +256,7 @@ export class Game {
       this.modeTimerMs -= dtMs;
       if (this.modeTimerMs <= 0) {
         if (this.lives <= 0) {
-          this.mode = "game-over";
+          this.enterGameOver();
         } else {
           this.mode = "playing";
           this.player.invulnerableMs = BALANCE.player.hitInvulnerableMs;
@@ -340,7 +350,107 @@ export class Game {
     this.earnedNewHighScore = false;
     this.mode = "playing";
     this.playerShotCount = 0;
+    this.resetLeaderboardEntry();
     this.startWave();
+  }
+
+  private updateGameOver(): void {
+    this.loadLeaderboard();
+
+    if (this.leaderboardStatus === "entering") {
+      const submitPressed = this.updateLeaderboardInitials();
+
+      if (submitPressed && this.leaderboardInitials.length === 3) {
+        this.submitLeaderboard();
+      }
+
+      return;
+    }
+
+    if (this.leaderboardStatus === "submitting") {
+      return;
+    }
+
+    const restartPressed = this.input.consume("Enter") || this.input.consume("Space");
+
+    if (restartPressed) {
+      this.audio.initialize();
+      this.startNewGame();
+    }
+  }
+
+  private updateLeaderboardInitials(): boolean {
+    let submitPressed = false;
+
+    for (const code of this.input.consumePressedCodes()) {
+      if (code === "Enter") {
+        submitPressed = true;
+        continue;
+      }
+
+      if (code === "Backspace") {
+        this.leaderboardInitials = this.leaderboardInitials.slice(0, -1);
+        continue;
+      }
+
+      if (this.leaderboardInitials.length >= 3) continue;
+
+      const character = this.getInitialsCharacter(code);
+
+      if (character) {
+        this.leaderboardInitials += character;
+      }
+    }
+
+    return submitPressed;
+  }
+
+  private getInitialsCharacter(code: string): string | null {
+    if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+    if (/^Digit[0-9]$/.test(code)) return code.slice(5);
+    return null;
+  }
+
+  private submitLeaderboard(): void {
+    if (this.leaderboardStatus !== "entering") return;
+    if (this.leaderboardInitials.length !== 3) return;
+
+    this.leaderboardStatus = "submitting";
+
+    void submitLeaderboardScore({
+      initials: this.leaderboardInitials,
+      score: this.score,
+      wave: this.wave,
+    }).then((submitted) => {
+      this.leaderboardStatus = submitted ? "submitted" : "failed";
+
+      if (submitted) {
+        this.leaderboardLoadStarted = false;
+        this.loadLeaderboard();
+      }
+    });
+  }
+
+  private loadLeaderboard(): void {
+    if (this.leaderboardLoadStarted || !isLeaderboardConfigured()) return;
+
+    this.leaderboardLoadStarted = true;
+
+    void fetchLeaderboard().then((entries) => {
+      this.leaderboardEntries = entries;
+    });
+  }
+
+  private resetLeaderboardEntry(): void {
+    this.leaderboardInitials = "";
+    this.leaderboardStatus = isLeaderboardConfigured() ? "entering" : "disabled";
+    this.leaderboardLoadStarted = false;
+  }
+
+  private enterGameOver(): void {
+    this.mode = "game-over";
+    this.resetLeaderboardEntry();
+    this.loadLeaderboard();
   }
 
   private startWave(): void {
@@ -666,7 +776,7 @@ export class Game {
 
       if (rect.y + rect.height >= dangerLineY) {
         this.lives = 0;
-        this.mode = "game-over";
+        this.enterGameOver();
         this.audio.playPlayerHit();
         return;
       }
@@ -842,6 +952,9 @@ export class Game {
       highScore: this.highScore,
       wave: this.wave,
       earnedNewHighScore: this.earnedNewHighScore,
+      leaderboardInitials: this.leaderboardInitials,
+      leaderboardEntries: this.leaderboardEntries,
+      leaderboardStatus: this.leaderboardStatus,
     });
   }
 

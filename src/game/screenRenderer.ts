@@ -1,4 +1,4 @@
-import type { SpriteManager } from "./assets";
+import type { LeaderboardEntry } from "./leaderboard";
 import { HEIGHT, WIDTH } from "./constants";
 import { BUILD_LABEL } from "./metadata";
 
@@ -13,15 +13,21 @@ export type GameOverScreenState = {
   highScore: number;
   wave: number;
   earnedNewHighScore: boolean;
+  leaderboardInitials: string;
+  leaderboardEntries: LeaderboardEntry[];
+  leaderboardStatus:
+    | "disabled"
+    | "entering"
+    | "submitting"
+    | "submitted"
+    | "failed";
 };
 
 export class ScreenRenderer {
   private ctx: CanvasRenderingContext2D;
-  private sprites: SpriteManager;
 
-  constructor(ctx: CanvasRenderingContext2D, sprites: SpriteManager) {
+  constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
-    this.sprites = sprites;
   }
 
   drawStartScreen(
@@ -198,17 +204,18 @@ export class ScreenRenderer {
     }
 
     this.drawGameOverStats(state);
-    this.drawGameOverPortrait();
+    this.drawLeaderboardPanel(state);
 
+    this.ctx.textAlign = "center";
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("THE CITADEL HAS WITNESSED", WIDTH / 2, 594);
+    this.ctx.fillText("THE CITADEL HAS WITNESSED", WIDTH / 2, 628);
 
     this.ctx.save();
     this.ctx.globalAlpha = promptPulse;
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillText("PRESS ENTER OR SPACE TO REDEPLOY", WIDTH / 2, 640);
+    this.ctx.fillText(this.getGameOverPrompt(state), WIDTH / 2, 672);
     this.ctx.restore();
   }
 
@@ -276,43 +283,104 @@ export class ScreenRenderer {
     this.ctx.fillText(`WAVE REACHED: ${String(state.wave).padStart(2, "0")}`, WIDTH / 2, panelY + 98);
   }
 
-  private drawGameOverPortrait(): void {
-    const time = performance.now() / 1000;
-    const bob = Math.sin(time * 1.8) * 5;
-    const flicker = Math.sin(time * 12) > 0.96 ? 0.82 : 1;
-
-    const size = 190;
-    const x = WIDTH / 2 - size / 2;
-    const y = 316 + bob;
-
-    this.ctx.save();
-    this.ctx.globalAlpha = flicker;
+  private drawLeaderboardPanel(state: GameOverScreenState): void {
+    const panelX = WIDTH / 2 - 330;
+    const panelY = 286;
+    const panelW = 660;
+    const panelH = 286;
 
     this.ctx.fillStyle = "rgba(3, 4, 10, 0.78)";
-    this.ctx.fillRect(x - 18, y - 18, size + 36, size + 36);
+    this.ctx.fillRect(panelX, panelY, panelW, panelH);
 
     this.ctx.strokeStyle = "rgba(158, 231, 255, 0.45)";
     this.ctx.lineWidth = 2;
-    this.ctx.strokeRect(x - 18, y - 18, size + 36, size + 36);
+    this.ctx.strokeRect(panelX, panelY, panelW, panelH);
 
-    const portrait = this.sprites.get("citadelWitness");
+    this.ctx.textAlign = "center";
+    this.ctx.font = "22px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("CITADEL LEADERBOARD", WIDTH / 2, panelY + 34);
 
-    if (portrait) {
-      this.ctx.drawImage(portrait, x, y, size, size);
-    } else {
-      this.ctx.fillStyle = "#111827";
-      this.ctx.fillRect(x, y, size, size);
+    this.drawInitialsEntry(state, panelX, panelY);
+    this.drawLeaderboardRows(state, panelX, panelY);
+  }
 
-      this.ctx.strokeStyle = "#f5f7ff";
-      this.ctx.strokeRect(x, y, size, size);
+  private drawInitialsEntry(
+    state: GameOverScreenState,
+    panelX: number,
+    panelY: number,
+  ): void {
+    const entryCenterX = panelX + 188;
 
-      this.ctx.fillStyle = "#f5f7ff";
-      this.ctx.font = "16px 'Courier New', monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText("PORTRAIT", WIDTH / 2, y + 88);
-      this.ctx.fillText("MISSING", WIDTH / 2, y + 110);
+    this.ctx.textAlign = "center";
+    this.ctx.font = "18px 'Courier New', monospace";
+    this.ctx.fillStyle = "#f5f7ff";
+
+    const label =
+      state.leaderboardStatus === "disabled"
+        ? "ONLINE SCOREBOARD OFFLINE"
+        : "ENTER INITIALS";
+
+    this.ctx.fillText(label, entryCenterX, panelY + 78);
+
+    this.ctx.font = "34px 'Courier New', monospace";
+    this.ctx.fillStyle = "#fff7d6";
+
+    const initials = state.leaderboardInitials.padEnd(3, "_");
+    this.ctx.fillText(initials, entryCenterX, panelY + 122);
+
+    this.ctx.font = "16px 'Courier New', monospace";
+    this.ctx.fillStyle = "#ff4f9a";
+    this.ctx.fillText(
+      this.getLeaderboardStatusText(state),
+      entryCenterX,
+      panelY + 156,
+    );
+  }
+
+  private drawLeaderboardRows(
+    state: GameOverScreenState,
+    panelX: number,
+    panelY: number,
+  ): void {
+    const startX = panelX + 356;
+    const startY = panelY + 72;
+
+    this.ctx.textAlign = "left";
+    this.ctx.font = "15px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText("TAG", startX, startY);
+    this.ctx.fillText("SCORE", startX + 100, startY);
+
+    this.ctx.fillStyle = "#f5f7ff";
+
+    const rows = state.leaderboardEntries.slice(0, 6);
+
+    if (rows.length === 0) {
+      this.ctx.fillText("NO SIGNAL YET", startX, startY + 34);
+      return;
     }
 
-    this.ctx.restore();
+    rows.forEach((entry, index) => {
+      const y = startY + 34 + index * 28;
+      this.ctx.fillText(entry.initials, startX, y);
+      this.ctx.fillText(String(entry.score).padStart(6, "0"), startX + 100, y);
+    });
   }
+
+  private getLeaderboardStatusText(state: GameOverScreenState): string {
+    if (state.leaderboardStatus === "disabled") return "SET SUPABASE ENV TO ENABLE";
+    if (state.leaderboardStatus === "submitting") return "TRANSMITTING...";
+    if (state.leaderboardStatus === "submitted") return "SCORE TRANSMITTED";
+    if (state.leaderboardStatus === "failed") return "TRANSMISSION FAILED";
+    if (state.leaderboardInitials.length < 3) return "TYPE 3 LETTERS OR NUMBERS";
+    return "PRESS ENTER TO TRANSMIT";
+  }
+
+  private getGameOverPrompt(state: GameOverScreenState): string {
+    if (state.leaderboardStatus === "entering") return "SUBMIT INITIALS TO REDEPLOY";
+    if (state.leaderboardStatus === "submitting") return "TRANSMISSION IN PROGRESS";
+    return "PRESS ENTER OR SPACE TO REDEPLOY";
+  }
+
 }

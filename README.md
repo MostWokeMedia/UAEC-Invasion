@@ -24,6 +24,7 @@ Implemented:
 - Enemy shooting
 - 3 lives
 - Score and high score
+- Online leaderboard foundation with 3-letter initials entry
 - Wave progression
 - Destructible barricades
 - UAEC Tank mystery target

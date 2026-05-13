@@ -13,6 +13,7 @@ export class InputManager {
     "KeyT",
     "KeyP",
     "KeyH",
+    "Backspace",
     "Escape",
   ]);
 
@@ -71,6 +72,12 @@ export class InputManager {
     }
 
     return false;
+  }
+
+  consumePressedCodes(): string[] {
+    const codes = [...this.pressed];
+    this.pressed.clear();
+    return codes;
   }
 
   clearPressed(): void {
