@@ -1,5 +1,5 @@
 import { BALANCE } from "./balance";
-import { COLS, ROWS } from "./constants";
+import { COLS, ROWS, TOTAL_ENEMIES } from "./constants";
 import type { BarricadeBlock, Enemy, EnemyType } from "./types";
 
 const BARRICADE_CENTERS = [190, 385, 575, 770];
@@ -113,4 +113,35 @@ export function getTankScore(
   const index = randomIndex(tankFallbackScores.length);
 
   return tankFallbackScores[index] ?? tankFallbackScores[0];
+}
+
+export function chooseEnemyShooter(
+  enemies: Enemy[],
+  randomIndex: (length: number) => number = (length) =>
+    Math.floor(Math.random() * length),
+): Enemy | null {
+  const alive = enemies.filter((enemy) => enemy.alive);
+  if (alive.length === 0) return null;
+
+  const columns = [...new Set(alive.map((enemy) => enemy.col))];
+  const selectedColumn = columns[randomIndex(columns.length)];
+  const candidates = alive.filter((enemy) => enemy.col === selectedColumn);
+
+  candidates.sort((a, b) => b.row - a.row);
+
+  return candidates[0] ?? null;
+}
+
+export function getEnemyShotCooldown(
+  aliveCount: number,
+  randomBonusMs: number = Math.random() * BALANCE.enemies.randomCooldownBonusMs,
+): number {
+  const baseCooldown = Math.max(
+    BALANCE.enemies.minimumShotCooldownMs,
+    BALANCE.enemies.startingShotCooldownMs -
+      (TOTAL_ENEMIES - aliveCount) *
+        BALANCE.enemies.cooldownReductionPerEnemyKilledMs,
+  );
+
+  return baseCooldown + randomBonusMs;
 }

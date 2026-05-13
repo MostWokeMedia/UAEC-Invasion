@@ -1,4 +1,4 @@
-import { HEIGHT, TOTAL_ENEMIES, WIDTH } from "./constants";
+import { HEIGHT, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
 import { AtmosphereRenderer } from "./atmosphereRenderer";
 import { BALANCE } from "./balance";
@@ -22,8 +22,10 @@ import {
 import { InputManager } from "./input";
 import { PlayerRenderer } from "./playerRenderer";
 import {
+  chooseEnemyShooter,
   createBarricades,
   createEnemies,
+  getEnemyShotCooldown,
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
@@ -445,7 +447,7 @@ export class Game {
     if (this.enemyProjectiles.length >= BALANCE.enemies.maxActiveProjectiles) return;
     if (this.enemyShotCooldownMs > 0) return;
 
-    const shooter = this.chooseEnemyShooter();
+    const shooter = chooseEnemyShooter(this.enemies);
     if (!shooter) return;
 
     const rect = this.getEnemyRect(shooter);
@@ -462,14 +464,7 @@ export class Game {
     });
 
     const aliveCount = this.getAliveEnemies().length;
-    this.enemyShotCooldownMs =
-      Math.max(
-        BALANCE.enemies.minimumShotCooldownMs,
-        BALANCE.enemies.startingShotCooldownMs -
-          (TOTAL_ENEMIES - aliveCount) *
-            BALANCE.enemies.cooldownReductionPerEnemyKilledMs,
-      ) +
-      Math.random() * BALANCE.enemies.randomCooldownBonusMs;
+    this.enemyShotCooldownMs = getEnemyShotCooldown(aliveCount);
   }
 
   private updateTank(dtMs: number): void {
@@ -703,19 +698,6 @@ export class Game {
 
   private getPlayerHitbox(): Rect {
     return getPlayerHitbox(this.player);
-  }
-
-  private chooseEnemyShooter(): Enemy | null {
-    const alive = this.getAliveEnemies();
-    if (alive.length === 0) return null;
-
-    const columns = [...new Set(alive.map((enemy) => enemy.col))];
-    const selectedColumn = columns[Math.floor(Math.random() * columns.length)];
-    const candidates = alive.filter((enemy) => enemy.col === selectedColumn);
-
-    candidates.sort((a, b) => b.row - a.row);
-
-    return candidates[0] ?? null;
   }
 
   private getAliveEnemies(): Enemy[] {

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  chooseEnemyShooter,
   createBarricades,
   createEnemies,
+  getEnemyShotCooldown,
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
@@ -96,5 +98,39 @@ describe("getTankScore", () => {
     expect(getTankScore(1, () => 0)).toBe(50);
     expect(getTankScore(1, () => 1)).toBe(100);
     expect(getTankScore(1, () => 2)).toBe(150);
+  });
+});
+
+describe("chooseEnemyShooter", () => {
+  it("chooses the lowest alive enemy in the selected column", () => {
+    const enemies = createEnemies();
+    enemies.find((enemy) => enemy.id === "4-2")!.alive = false;
+
+    expect(chooseEnemyShooter(enemies, () => 2)?.id).toBe("3-2");
+  });
+
+  it("returns null when no enemies are alive", () => {
+    const enemies = createEnemies().map((enemy) => ({
+      ...enemy,
+      alive: false,
+    }));
+
+    expect(chooseEnemyShooter(enemies)).toBeNull();
+  });
+});
+
+describe("getEnemyShotCooldown", () => {
+  it("reduces cooldown as enemies are destroyed", () => {
+    expect(getEnemyShotCooldown(35, 0)).toBeGreaterThan(
+      getEnemyShotCooldown(10, 0),
+    );
+  });
+
+  it("does not go below the minimum cooldown before random bonus", () => {
+    expect(getEnemyShotCooldown(0, 0)).toBe(620);
+  });
+
+  it("adds the random cooldown bonus", () => {
+    expect(getEnemyShotCooldown(35, 123)).toBe(1723);
   });
 });
