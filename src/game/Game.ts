@@ -5,11 +5,16 @@ import { BALANCE } from "./balance";
 import { BarricadeRenderer } from "./barricadeRenderer";
 import { BackgroundRenderer } from "./backgroundRenderer";
 import { SpriteManager } from "./assets";
+import {
+  didHitTank,
+  findBarricadeHit,
+  findEnemyHit,
+  findEnemyProjectileHit,
+} from "./collision";
 import { EffectsRenderer } from "./effectsRenderer";
 import { EnemyRenderer } from "./enemyRenderer";
 import { FloatingTextRenderer } from "./floatingTextRenderer";
 import {
-  getEnemyHurtbox,
   getEnemyRect,
   getFormationBounds,
   getPlayerHitbox,
@@ -535,17 +540,18 @@ export class Game {
   private handlePlayerMissileCollisions(): void {
     if (!this.playerMissile) return;
 
-    for (const block of this.barricadeBlocks) {
-      if (!block.active) continue;
+    const barricadeHit = findBarricadeHit(
+      this.playerMissile,
+      this.barricadeBlocks,
+    );
 
-      if (rectsOverlap(this.playerMissile, block)) {
-        this.damageBarricadeBlock(block);
-        this.playerMissile = null;
-        return;
-      }
+    if (barricadeHit) {
+      this.damageBarricadeBlock(barricadeHit);
+      this.playerMissile = null;
+      return;
     }
 
-    if (this.tank.active && rectsOverlap(this.playerMissile, this.tank)) {
+    if (didHitTank(this.playerMissile, this.tank)) {
       const tankScore = getTankScore(this.playerShotCount);
       this.addScore(tankScore);
       this.floatingTexts.push({
@@ -576,37 +582,37 @@ export class Game {
       return;
     }
 
-    for (const enemy of this.enemies) {
-      if (!enemy.alive) continue;
+    const enemyHit = findEnemyHit(
+      this.playerMissile,
+      this.enemies,
+      this.formation,
+    );
 
-      const enemyRect = this.getEnemyRect(enemy);
-      const enemyHurtbox = this.getEnemyHurtbox(enemy, enemyRect);
+    if (enemyHit) {
+      const { enemy, rect: enemyRect } = enemyHit;
 
-      if (rectsOverlap(this.playerMissile, enemyHurtbox)) {
-        enemy.alive = false;
-        this.addScore(enemy.score);
-        this.floatingTexts.push({
-          text: `+${enemy.score}`,
-          x: enemyRect.x + enemyRect.width / 2,
-          y: enemyRect.y,
-          lifeMs: 650,
-        });
+      enemy.alive = false;
+      this.addScore(enemy.score);
+      this.floatingTexts.push({
+        text: `+${enemy.score}`,
+        x: enemyRect.x + enemyRect.width / 2,
+        y: enemyRect.y,
+        lifeMs: 650,
+      });
 
-        this.explosions.push({
-          x: enemyRect.x + enemyRect.width / 2 - EXPLOSION_SPRITE.enemyWidth / 2,
-          y: enemyRect.y + enemyRect.height / 2 - EXPLOSION_SPRITE.enemyHeight / 2,
-          width: EXPLOSION_SPRITE.enemyWidth,
-          height: EXPLOSION_SPRITE.enemyHeight,
-          lifeMs: 320,
-          totalLifeMs: 320,
-        });
+      this.explosions.push({
+        x: enemyRect.x + enemyRect.width / 2 - EXPLOSION_SPRITE.enemyWidth / 2,
+        y: enemyRect.y + enemyRect.height / 2 - EXPLOSION_SPRITE.enemyHeight / 2,
+        width: EXPLOSION_SPRITE.enemyWidth,
+        height: EXPLOSION_SPRITE.enemyHeight,
+        lifeMs: 320,
+        totalLifeMs: 320,
+      });
 
-        this.triggerScreenShake(90, 2.5);
+      this.triggerScreenShake(90, 2.5);
 
-        this.playerMissile = null;
-        this.audio.playEnemyHit();
-        return;
-      }
+      this.playerMissile = null;
+      this.audio.playEnemyHit();
     }
   }
 
@@ -614,24 +620,19 @@ export class Game {
     const remainingProjectiles: Projectile[] = [];
 
     for (const projectile of this.enemyProjectiles) {
-      let projectileConsumed = false;
+      const hit = findEnemyProjectileHit(
+        projectile,
+        this.barricadeBlocks,
+        this.getPlayerHitbox(),
+        this.player,
+      );
 
-      for (const block of this.barricadeBlocks) {
-        if (!block.active) continue;
-
-        if (rectsOverlap(projectile, block)) {
-          this.damageBarricadeBlock(block);
-          projectileConsumed = true;
-          break;
-        }
+      if (hit?.type === "barricade") {
+        this.damageBarricadeBlock(hit.block);
+        continue;
       }
 
-      if (projectileConsumed) continue;
-
-      if (
-        this.player.invulnerableMs <= 0 &&
-        rectsOverlap(projectile, this.getPlayerHitbox())
-      ) {
+      if (hit?.type === "player") {
         this.explosions.push({
           x: this.player.x + this.player.width / 2 - EXPLOSION_SPRITE.playerWidth / 2,
           y: this.player.y + this.player.height / 2 - EXPLOSION_SPRITE.playerHeight / 2,
@@ -737,10 +738,6 @@ export class Game {
       this.highScore = this.score;
       writeNumber(Game.HIGH_SCORE_KEY, this.highScore);
     }
-  }
-
-  private getEnemyHurtbox(enemy: Enemy, rect: Rect): Rect {
-    return getEnemyHurtbox(enemy, rect);
   }
 
   private getEnemyRect(enemy: Enemy): Rect {
