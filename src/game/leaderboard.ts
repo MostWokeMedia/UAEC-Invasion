@@ -1,7 +1,7 @@
 import { BUILD_LABEL } from "./metadata";
 
 const LEADERBOARD_TABLE = "leaderboard_scores";
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 100;
 
 export type LeaderboardEntry = {
   initials: string;

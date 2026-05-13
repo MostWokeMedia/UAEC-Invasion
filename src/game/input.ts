@@ -1,6 +1,10 @@
 export class InputManager {
   private keys = new Set<string>();
   private pressed = new Set<string>();
+  private scrollSteps = 0;
+  private pointerX = 0;
+  private pointerY = 0;
+  private pointerDown = false;
   private handledKeys = new Set([
     "KeyA",
     "KeyD",
@@ -20,13 +24,25 @@ export class InputManager {
   constructor() {
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
+    window.addEventListener("wheel", this.handleWheel, { passive: false });
+    window.addEventListener("pointerdown", this.handlePointerDown);
+    window.addEventListener("pointermove", this.handlePointerMove);
+    window.addEventListener("pointerup", this.handlePointerUp);
+    window.addEventListener("pointercancel", this.handlePointerUp);
   }
 
   dispose(): void {
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("keyup", this.handleKeyUp);
+    window.removeEventListener("wheel", this.handleWheel);
+    window.removeEventListener("pointerdown", this.handlePointerDown);
+    window.removeEventListener("pointermove", this.handlePointerMove);
+    window.removeEventListener("pointerup", this.handlePointerUp);
+    window.removeEventListener("pointercancel", this.handlePointerUp);
     this.keys.clear();
     this.pressed.clear();
+    this.scrollSteps = 0;
+    this.pointerDown = false;
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {
@@ -48,6 +64,41 @@ export class InputManager {
 
     this.keys.delete(event.code);
   };
+
+  private handleWheel = (event: WheelEvent): void => {
+    if (event.deltaY === 0) return;
+
+    event.preventDefault();
+    this.scrollSteps += event.deltaY > 0 ? 1 : -1;
+  };
+
+  private handlePointerDown = (event: PointerEvent): void => {
+    this.pointerDown = true;
+    this.updatePointerPosition(event);
+  };
+
+  private handlePointerMove = (event: PointerEvent): void => {
+    this.updatePointerPosition(event);
+  };
+
+  private handlePointerUp = (event: PointerEvent): void => {
+    this.pointerDown = false;
+    this.updatePointerPosition(event);
+  };
+
+  private updatePointerPosition(event: PointerEvent): void {
+    const target = event.target;
+
+    if (!(target instanceof HTMLCanvasElement)) {
+      this.pointerX = event.clientX;
+      this.pointerY = event.clientY;
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    this.pointerX = ((event.clientX - rect.left) / rect.width) * target.width;
+    this.pointerY = ((event.clientY - rect.top) / rect.height) * target.height;
+  }
 
   isLeftHeld(): boolean {
     return this.keys.has("KeyA") || this.keys.has("ArrowLeft");
@@ -78,6 +129,20 @@ export class InputManager {
     const codes = [...this.pressed];
     this.pressed.clear();
     return codes;
+  }
+
+  consumeScrollSteps(): number {
+    const steps = this.scrollSteps;
+    this.scrollSteps = 0;
+    return steps;
+  }
+
+  getPointerState(): { x: number; y: number; isDown: boolean } {
+    return {
+      x: this.pointerX,
+      y: this.pointerY,
+      isDown: this.pointerDown,
+    };
   }
 
   clearPressed(): void {

@@ -29,4 +29,31 @@ with check (
 );
 
 create index if not exists leaderboard_scores_rank_idx
-on public.leaderboard_scores (score desc, created_at asc);
+on public.leaderboard_scores (score desc, created_at asc, id asc);
+
+create or replace function public.prune_leaderboard_scores()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.leaderboard_scores
+  where id in (
+    select id
+    from public.leaderboard_scores
+    order by score desc, created_at asc, id asc
+    offset 100
+  );
+
+  return null;
+end;
+$$;
+
+drop trigger if exists leaderboard_scores_prune_after_insert
+on public.leaderboard_scores;
+
+create trigger leaderboard_scores_prune_after_insert
+after insert on public.leaderboard_scores
+for each statement
+execute function public.prune_leaderboard_scores();

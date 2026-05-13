@@ -62,6 +62,13 @@ import type {
 
 export class Game {
   private static readonly HIGH_SCORE_KEY = "uaec-invasion-high-score";
+  private static readonly LEADERBOARD_VISIBLE_ROWS = 6;
+  private static readonly LEADERBOARD_SCROLLBAR = {
+    x: WIDTH / 2 - 330 + 624,
+    y: 286 + 70,
+    width: 12,
+    height: 176,
+  };
 
   private mode: GameMode = "start";
   private score = 0;
@@ -93,6 +100,8 @@ export class Game {
   private screenShakeStrength = 0;
   private leaderboardInitials = "";
   private leaderboardEntries: LeaderboardEntry[] = [];
+  private leaderboardScrollOffset = 0;
+  private isDraggingLeaderboard = false;
   private leaderboardStatus:
     | "disabled"
     | "entering"
@@ -188,6 +197,7 @@ export class Game {
         event.code === "KeyT" || event.key.toLowerCase() === "t";
 
       if (!isSpriteToggle || event.repeat) return;
+      if (this.mode === "game-over") return;
 
       event.preventDefault();
       this.sprites.toggleEnabled();
@@ -209,6 +219,11 @@ export class Game {
 
   update(dtMs: number): void {
     this.updateScreenShake(dtMs);
+
+    if (this.mode === "game-over") {
+      this.updateGameOver();
+      return;
+    }
 
     if (this.input.consume("KeyM")) {
       this.audio.toggleMusicMute();
@@ -244,11 +259,6 @@ export class Game {
         this.audio.initialize();
         this.startNewGame();
       }
-      return;
-    }
-
-    if (this.mode === "game-over") {
-      this.updateGameOver();
       return;
     }
 
@@ -356,6 +366,7 @@ export class Game {
 
   private updateGameOver(): void {
     this.loadLeaderboard();
+    this.updateLeaderboardScroll();
 
     if (this.leaderboardStatus === "entering") {
       const submitPressed = this.updateLeaderboardInitials();
@@ -438,13 +449,77 @@ export class Game {
 
     void fetchLeaderboard().then((entries) => {
       this.leaderboardEntries = entries;
+      this.clampLeaderboardScroll();
     });
   }
 
   private resetLeaderboardEntry(): void {
     this.leaderboardInitials = "";
+    this.leaderboardScrollOffset = 0;
     this.leaderboardStatus = isLeaderboardConfigured() ? "entering" : "disabled";
     this.leaderboardLoadStarted = false;
+    this.isDraggingLeaderboard = false;
+  }
+
+  private updateLeaderboardScroll(): void {
+    this.leaderboardScrollOffset += this.input.consumeScrollSteps();
+
+    if (this.input.consume("ArrowUp")) {
+      this.leaderboardScrollOffset--;
+    }
+
+    if (this.input.consume("ArrowDown")) {
+      this.leaderboardScrollOffset++;
+    }
+
+    this.updateLeaderboardDragScroll();
+    this.clampLeaderboardScroll();
+  }
+
+  private updateLeaderboardDragScroll(): void {
+    const pointer = this.input.getPointerState();
+
+    if (!pointer.isDown) {
+      this.isDraggingLeaderboard = false;
+      return;
+    }
+
+    if (!this.isDraggingLeaderboard && !this.isPointerOnLeaderboardScrollbar()) {
+      return;
+    }
+
+    this.isDraggingLeaderboard = true;
+
+    const maxOffset = this.getMaxLeaderboardScrollOffset();
+    if (maxOffset <= 0) return;
+
+    const { y, height } = Game.LEADERBOARD_SCROLLBAR;
+    const progress = clamp((pointer.y - y) / height, 0, 1);
+    this.leaderboardScrollOffset = Math.round(progress * maxOffset);
+  }
+
+  private isPointerOnLeaderboardScrollbar(): boolean {
+    const pointer = this.input.getPointerState();
+    const { x, y, width, height } = Game.LEADERBOARD_SCROLLBAR;
+
+    return (
+      pointer.x >= x - 8 &&
+      pointer.x <= x + width + 8 &&
+      pointer.y >= y - 8 &&
+      pointer.y <= y + height + 8
+    );
+  }
+
+  private clampLeaderboardScroll(): void {
+    const maxOffset = this.getMaxLeaderboardScrollOffset();
+    this.leaderboardScrollOffset = clamp(this.leaderboardScrollOffset, 0, maxOffset);
+  }
+
+  private getMaxLeaderboardScrollOffset(): number {
+    return Math.max(
+      0,
+      this.leaderboardEntries.length - Game.LEADERBOARD_VISIBLE_ROWS,
+    );
   }
 
   private enterGameOver(): void {
@@ -954,6 +1029,7 @@ export class Game {
       earnedNewHighScore: this.earnedNewHighScore,
       leaderboardInitials: this.leaderboardInitials,
       leaderboardEntries: this.leaderboardEntries,
+      leaderboardScrollOffset: this.leaderboardScrollOffset,
       leaderboardStatus: this.leaderboardStatus,
     });
   }

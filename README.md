@@ -53,6 +53,7 @@ Implemented:
 | `N` | Toggle SFX |
 | `Enter` | Start / restart |
 | `T` | Toggle sprites as a hidden dev tool |
+| `Up / Down Arrow` / mouse wheel / scrollbar drag | Scroll game-over leaderboard |
 
 ## Gameplay Rules
 
@@ -125,6 +126,8 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-browser-safe-publishable-or-anon-key
 ```
 
 The game client uses Supabase row-level security and only needs the browser-safe publishable/anon key. Do not put a service-role key in `.env.local`.
+
+The leaderboard table keeps only the top 100 scores. A database trigger prunes lower-ranked rows after inserts so desktop and mobile builds share the same limit.
 
 Build the project:
 

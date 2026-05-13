@@ -15,6 +15,7 @@ export type GameOverScreenState = {
   earnedNewHighScore: boolean;
   leaderboardInitials: string;
   leaderboardEntries: LeaderboardEntry[];
+  leaderboardScrollOffset: number;
   leaderboardStatus:
     | "disabled"
     | "entering"
@@ -24,6 +25,14 @@ export type GameOverScreenState = {
 };
 
 export class ScreenRenderer {
+  private static readonly LEADERBOARD_VISIBLE_ROWS = 6;
+  private static readonly LEADERBOARD_SCROLLBAR = {
+    xOffset: 624,
+    yOffset: 70,
+    width: 6,
+    height: 176,
+  };
+
   private ctx: CanvasRenderingContext2D;
 
   constructor(ctx: CanvasRenderingContext2D) {
@@ -354,7 +363,12 @@ export class ScreenRenderer {
 
     this.ctx.fillStyle = "#f5f7ff";
 
-    const rows = state.leaderboardEntries.slice(0, 6);
+    const visibleRows = ScreenRenderer.LEADERBOARD_VISIBLE_ROWS;
+    const scrollOffset = Math.max(0, state.leaderboardScrollOffset);
+    const rows = state.leaderboardEntries.slice(
+      scrollOffset,
+      scrollOffset + visibleRows,
+    );
 
     if (rows.length === 0) {
       this.ctx.fillText("NO SIGNAL YET", startX, startY + 34);
@@ -366,6 +380,43 @@ export class ScreenRenderer {
       this.ctx.fillText(entry.initials, startX, y);
       this.ctx.fillText(String(entry.score).padStart(6, "0"), startX + 100, y);
     });
+
+    if (state.leaderboardEntries.length > visibleRows) {
+      this.drawLeaderboardScrollbar(
+        panelX,
+        panelY,
+        state.leaderboardEntries.length,
+        visibleRows,
+        scrollOffset,
+      );
+    }
+  }
+
+  private drawLeaderboardScrollbar(
+    panelX: number,
+    panelY: number,
+    totalRows: number,
+    visibleRows: number,
+    scrollOffset: number,
+  ): void {
+    const trackX = panelX + ScreenRenderer.LEADERBOARD_SCROLLBAR.xOffset;
+    const trackY = panelY + ScreenRenderer.LEADERBOARD_SCROLLBAR.yOffset;
+    const trackHeight = ScreenRenderer.LEADERBOARD_SCROLLBAR.height;
+    const thumbHeight = Math.max(24, trackHeight * (visibleRows / totalRows));
+    const maxOffset = Math.max(1, totalRows - visibleRows);
+    const thumbY =
+      trackY + (trackHeight - thumbHeight) * (scrollOffset / maxOffset);
+
+    this.ctx.fillStyle = "rgba(158, 231, 255, 0.18)";
+    this.ctx.fillRect(
+      trackX,
+      trackY,
+      ScreenRenderer.LEADERBOARD_SCROLLBAR.width,
+      trackHeight,
+    );
+
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillRect(trackX - 1, thumbY, 8, thumbHeight);
   }
 
   private getLeaderboardStatusText(state: GameOverScreenState): string {

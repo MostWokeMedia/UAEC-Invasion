@@ -31,6 +31,9 @@ All notable project changes should be documented here.
 - Extracted projectile movement and cleanup into tested gameplay helpers.
 - Added Supabase leaderboard schema, environment template, and typed browser client foundation.
 - Added game-over initials entry, Supabase score submission, and leaderboard display.
+- Added Supabase leaderboard pruning so only the top 100 scores remain stored.
+- Added Up/Down, mouse wheel, and click-drag scrollbar support for the game-over leaderboard.
+- Disabled pause, mute, and sprite-toggle hotkeys on the game-over screen and removed the leaderboard scroll hint text.
 - Improved browser audio unlocking so SFX and music can recover from autoplay restrictions on key/click input.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 
