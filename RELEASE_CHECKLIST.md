@@ -80,7 +80,26 @@ Desktop browser release candidate. Mobile support is postponed until after the d
 - To revert starter-file cleanup, restore the deleted files from git history.
 - To revert storage helper changes, restore direct `localStorage` reads/writes in `Game` and `AudioManager`.
 - To revert listener cleanup, remove `dispose()` calls and restore constructor-only event registration.
-- To revert helper extraction, inline `getFormationStepDelay`, `getWaveStartingAdvance`, and `getTankScore` logic back into `Game`.
+- To revert renderer extractions, either use the matching checkpoint commit or inline the renderer call back into `Game`:
+  - `1d45bc5` sprite cache
+  - `7c40bf7` HUD
+  - `41a0c7c` screen overlays
+  - `7c95a6c` atmosphere overlays
+  - `a01e598` projectiles/explosions
+  - `d32530b` barricades
+  - `49e065a` player
+  - `5339725` tank
+  - `2300b88` enemies
+  - `66dfa5f` floating text and audio unlock
+  - `1e02e47` background
+- To revert gameplay helper extractions, use the matching checkpoint commit or inline the helper back into `Game`:
+  - `5175662` entity setup
+  - `2e0ac1b` geometry helpers
+  - `98374af` collision helpers
+  - `661b75b` enemy shooting helpers
+  - `3448b93` transient lifecycle helpers
+  - `3941e78` projectile update helpers
+- After reverting any rendering or gameplay-helper extraction, run the full automated verification and repeat the manual smoke test sections above.
 
 ## Known Deferred Items
 
