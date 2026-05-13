@@ -1,4 +1,4 @@
-import { COLS, HEIGHT, TOTAL_ENEMIES, WIDTH } from "./constants";
+import { HEIGHT, TOTAL_ENEMIES, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
 import { AtmosphereRenderer } from "./atmosphereRenderer";
 import { BALANCE } from "./balance";
@@ -8,6 +8,12 @@ import { SpriteManager } from "./assets";
 import { EffectsRenderer } from "./effectsRenderer";
 import { EnemyRenderer } from "./enemyRenderer";
 import { FloatingTextRenderer } from "./floatingTextRenderer";
+import {
+  getEnemyHurtbox,
+  getEnemyRect,
+  getFormationBounds,
+  getPlayerHitbox,
+} from "./geometry";
 import { InputManager } from "./input";
 import { PlayerRenderer } from "./playerRenderer";
 import {
@@ -28,7 +34,6 @@ import type {
   BarricadeBlock,
   Direction,
   Enemy,
-  EnemyType,
   Explosion,
   FloatingText,
   GameMode,
@@ -696,12 +701,7 @@ export class Game {
   }
 
   private getPlayerHitbox(): Rect {
-    return {
-      x: this.player.x,
-      y: this.player.y + BALANCE.player.hitboxYOffset,
-      width: this.player.width,
-      height: this.player.height,
-    };
+    return getPlayerHitbox(this.player);
   }
 
   private chooseEnemyShooter(): Enemy | null {
@@ -740,61 +740,15 @@ export class Game {
   }
 
   private getEnemyHurtbox(enemy: Enemy, rect: Rect): Rect {
-    const paddingByType: Record<EnemyType, { xRatio: number; yRatio: number }> = {
-      officer: { xRatio: 0.06, yRatio: 0.04 },
-      shield: { xRatio: 0.08, yRatio: 0.04 },
-      armored: { xRatio: 0.24, yRatio: 0.10 },
-    };
-
-    const padding = paddingByType[enemy.type];
-    const padX = rect.width * padding.xRatio;
-    const padY = rect.height * padding.yRatio;
-
-    return {
-      x: rect.x - padX,
-      y: rect.y - padY,
-      width: rect.width + padX * 2,
-      height: rect.height + padY * 2,
-    };
+    return getEnemyHurtbox(enemy, rect);
   }
 
   private getEnemyRect(enemy: Enemy): Rect {
-    const rowY = [130, 200, 275, 365, 455][enemy.row];
-    const baseScale = [0.72, 0.84, 0.96, 1.1, 1.25][enemy.row];
-    const advanceScale = this.formation.yAdvance * 0.0017;
-    const scale = baseScale + advanceScale;
-
-    const spacing = 78 * scale;
-    const centerX = WIDTH / 2 + this.formation.xOffset;
-    const x = centerX + (enemy.col - (COLS - 1) / 2) * spacing;
-
-    const baseWidth = enemy.type === "armored" ? 42 : enemy.type === "shield" ? 40 : 34;
-    const baseHeight = enemy.type === "armored" ? 46 : enemy.type === "shield" ? 48 : 40;
-
-    return {
-      x: x - (baseWidth * scale) / 2,
-      y: rowY + this.formation.yAdvance,
-      width: baseWidth * scale,
-      height: baseHeight * scale,
-    };
+    return getEnemyRect(enemy, this.formation);
   }
 
   private getFormationBounds(): Rect | null {
-    const alive = this.getAliveEnemies();
-    if (alive.length === 0) return null;
-
-    const rects = alive.map((enemy) => this.getEnemyRect(enemy));
-    const left = Math.min(...rects.map((rect) => rect.x));
-    const top = Math.min(...rects.map((rect) => rect.y));
-    const right = Math.max(...rects.map((rect) => rect.x + rect.width));
-    const bottom = Math.max(...rects.map((rect) => rect.y + rect.height));
-
-    return {
-      x: left,
-      y: top,
-      width: right - left,
-      height: bottom - top,
-    };
+    return getFormationBounds(this.enemies, this.formation);
   }
 
   private updateScreenShake(dtMs: number): void {
