@@ -7,8 +7,10 @@ import {
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
+  updateEnemyProjectiles,
   updateExplosions,
   updateFloatingTexts,
+  updatePlayerMissile,
 } from "./gameplay";
 
 describe("createEnemies", () => {
@@ -192,5 +194,84 @@ describe("updateFloatingTexts", () => {
         250,
       ),
     ).toEqual([{ text: "+10", x: 100, y: 194, lifeMs: 550 }]);
+  });
+});
+
+describe("updatePlayerMissile", () => {
+  it("moves the player missile by speed and dt", () => {
+    expect(
+      updatePlayerMissile(
+        {
+          owner: "player",
+          x: 50,
+          y: 100,
+          width: 6,
+          height: 18,
+          speedY: -300,
+        },
+        100,
+      ),
+    ).toEqual({
+      owner: "player",
+      x: 50,
+      y: 70,
+      width: 6,
+      height: 18,
+      speedY: -300,
+    });
+  });
+
+  it("removes the missile once it leaves the top of the screen", () => {
+    expect(
+      updatePlayerMissile(
+        {
+          owner: "player",
+          x: 50,
+          y: -20,
+          width: 6,
+          height: 18,
+          speedY: -300,
+        },
+        100,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe("updateEnemyProjectiles", () => {
+  it("moves enemy projectiles and removes entries below the cleanup line", () => {
+    expect(
+      updateEnemyProjectiles(
+        [
+          {
+            owner: "enemy",
+            x: 10,
+            y: 100,
+            width: 8,
+            height: 18,
+            speedY: 200,
+          },
+          {
+            owner: "enemy",
+            x: 20,
+            y: 760,
+            width: 8,
+            height: 18,
+            speedY: 200,
+          },
+        ],
+        100,
+        760,
+      ),
+    ).toEqual([
+      {
+        owner: "enemy",
+        x: 10,
+        y: 120,
+        width: 8,
+        height: 18,
+        speedY: 200,
+      },
+    ]);
   });
 });

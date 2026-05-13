@@ -28,6 +28,7 @@ All notable project changes should be documented here.
 - Extracted collision hit-detection decisions into tested pure helpers.
 - Extracted enemy shooter selection and shot cooldown logic into tested gameplay helpers.
 - Extracted explosion and floating text lifecycle updates into tested gameplay helpers.
+- Extracted projectile movement and cleanup into tested gameplay helpers.
 - Improved browser audio unlocking so SFX and music can recover from autoplay restrictions on key/click input.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 

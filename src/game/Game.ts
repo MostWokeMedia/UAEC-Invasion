@@ -29,8 +29,10 @@ import {
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
+  updateEnemyProjectiles,
   updateExplosions,
   updateFloatingTexts,
+  updatePlayerMissile,
 } from "./gameplay";
 import { HudRenderer } from "./hudRenderer";
 import { EXPLOSION_SPRITE } from "./rendering";
@@ -512,21 +514,12 @@ export class Game {
   }
 
   private updateProjectiles(dtMs: number): void {
-    const dt = dtMs / 1000;
-
-    if (this.playerMissile) {
-      this.playerMissile.y += this.playerMissile.speedY * dt;
-
-      if (this.playerMissile.y + this.playerMissile.height < 0) {
-        this.playerMissile = null;
-      }
-    }
-
-    for (const projectile of this.enemyProjectiles) {
-      projectile.y += projectile.speedY * dt;
-    }
-
-    this.enemyProjectiles = this.enemyProjectiles.filter((projectile) => projectile.y < HEIGHT + 40);
+    this.playerMissile = updatePlayerMissile(this.playerMissile, dtMs);
+    this.enemyProjectiles = updateEnemyProjectiles(
+      this.enemyProjectiles,
+      dtMs,
+      HEIGHT + 40,
+    );
   }
 
   private handleCollisions(): void {

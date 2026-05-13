@@ -6,6 +6,7 @@ import type {
   EnemyType,
   Explosion,
   FloatingText,
+  Projectile,
 } from "./types";
 
 const BARRICADE_CENTERS = [190, 385, 575, 770];
@@ -177,4 +178,36 @@ export function updateFloatingTexts(
       y: floatingText.y - dy,
     }))
     .filter((floatingText) => floatingText.lifeMs > 0);
+}
+
+export function updatePlayerMissile(
+  playerMissile: Projectile | null,
+  dtMs: number,
+): Projectile | null {
+  if (!playerMissile) return null;
+
+  const dt = dtMs / 1000;
+  const updatedMissile = {
+    ...playerMissile,
+    y: playerMissile.y + playerMissile.speedY * dt,
+  };
+
+  if (updatedMissile.y + updatedMissile.height < 0) return null;
+
+  return updatedMissile;
+}
+
+export function updateEnemyProjectiles(
+  enemyProjectiles: Projectile[],
+  dtMs: number,
+  maxY: number,
+): Projectile[] {
+  const dt = dtMs / 1000;
+
+  return enemyProjectiles
+    .map((projectile) => ({
+      ...projectile,
+      y: projectile.y + projectile.speedY * dt,
+    }))
+    .filter((projectile) => projectile.y < maxY);
 }
