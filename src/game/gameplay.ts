@@ -1,6 +1,12 @@
 import { BALANCE } from "./balance";
 import { COLS, ROWS, TOTAL_ENEMIES } from "./constants";
-import type { BarricadeBlock, Enemy, EnemyType } from "./types";
+import type {
+  BarricadeBlock,
+  Enemy,
+  EnemyType,
+  Explosion,
+  FloatingText,
+} from "./types";
 
 const BARRICADE_CENTERS = [190, 385, 575, 770];
 const BARRICADE_BLOCK_SIZE = 16;
@@ -144,4 +150,31 @@ export function getEnemyShotCooldown(
   );
 
   return baseCooldown + randomBonusMs;
+}
+
+export function updateExplosions(
+  explosions: Explosion[],
+  dtMs: number,
+): Explosion[] {
+  return explosions
+    .map((explosion) => ({
+      ...explosion,
+      lifeMs: explosion.lifeMs - dtMs,
+    }))
+    .filter((explosion) => explosion.lifeMs > 0);
+}
+
+export function updateFloatingTexts(
+  floatingTexts: FloatingText[],
+  dtMs: number,
+): FloatingText[] {
+  const dy = 24 * (dtMs / 1000);
+
+  return floatingTexts
+    .map((floatingText) => ({
+      ...floatingText,
+      lifeMs: floatingText.lifeMs - dtMs,
+      y: floatingText.y - dy,
+    }))
+    .filter((floatingText) => floatingText.lifeMs > 0);
 }

@@ -29,6 +29,8 @@ import {
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
+  updateExplosions,
+  updateFloatingTexts,
 } from "./gameplay";
 import { HudRenderer } from "./hudRenderer";
 import { EXPLOSION_SPRITE } from "./rendering";
@@ -755,20 +757,11 @@ export class Game {
   }
 
   private updateExplosions(dtMs: number): void {
-    for (const explosion of this.explosions) {
-      explosion.lifeMs -= dtMs;
-    }
-
-    this.explosions = this.explosions.filter((explosion) => explosion.lifeMs > 0);
+    this.explosions = updateExplosions(this.explosions, dtMs);
   }
 
   private updateFloatingTexts(dtMs: number): void {
-    for (const floatingText of this.floatingTexts) {
-      floatingText.lifeMs -= dtMs;
-      floatingText.y -= 24 * (dtMs / 1000);
-    }
-
-    this.floatingTexts = this.floatingTexts.filter((floatingText) => floatingText.lifeMs > 0);
+    this.floatingTexts = updateFloatingTexts(this.floatingTexts, dtMs);
   }
 
   private drawBackground(): void {

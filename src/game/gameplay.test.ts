@@ -7,6 +7,8 @@ import {
   getFormationStepDelay,
   getTankScore,
   getWaveStartingAdvance,
+  updateExplosions,
+  updateFloatingTexts,
 } from "./gameplay";
 
 describe("createEnemies", () => {
@@ -132,5 +134,63 @@ describe("getEnemyShotCooldown", () => {
 
   it("adds the random cooldown bonus", () => {
     expect(getEnemyShotCooldown(35, 123)).toBe(1723);
+  });
+});
+
+describe("updateExplosions", () => {
+  it("reduces explosion life and removes expired entries", () => {
+    expect(
+      updateExplosions(
+        [
+          {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 10,
+            lifeMs: 100,
+            totalLifeMs: 100,
+          },
+          {
+            x: 20,
+            y: 20,
+            width: 10,
+            height: 10,
+            lifeMs: 20,
+            totalLifeMs: 100,
+          },
+        ],
+        50,
+      ),
+    ).toEqual([
+      {
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        lifeMs: 50,
+        totalLifeMs: 100,
+      },
+    ]);
+  });
+});
+
+describe("updateFloatingTexts", () => {
+  it("moves text upward, reduces life, and removes expired entries", () => {
+    expect(
+      updateFloatingTexts(
+        [
+          { text: "+10", x: 100, y: 200, lifeMs: 800 },
+          { text: "+20", x: 120, y: 220, lifeMs: 20 },
+        ],
+        500,
+      ),
+    ).toEqual([{ text: "+10", x: 100, y: 188, lifeMs: 300 }]);
+
+    expect(
+      updateFloatingTexts(
+        [{ text: "+10", x: 100, y: 200, lifeMs: 800 }],
+        250,
+      ),
+    ).toEqual([{ text: "+10", x: 100, y: 194, lifeMs: 550 }]);
   });
 });
