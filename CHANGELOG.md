@@ -34,6 +34,9 @@ All notable project changes should be documented here.
 - Added Supabase leaderboard pruning so only the top 100 scores remain stored.
 - Added Up/Down, mouse wheel, and click-drag scrollbar support for the game-over leaderboard.
 - Disabled pause, mute, and sprite-toggle hotkeys on the game-over screen and removed the leaderboard scroll hint text.
+- Restored leaderboard placement numbers while keeping wave hidden.
+- Highlighted the current submitted leaderboard row in glowing gold.
+- Added responsive touch controls for movement, firing, and pause on mobile/coarse-pointer devices.
 - Improved browser audio unlocking so SFX and music can recover from autoplay restrictions on key/click input.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
 

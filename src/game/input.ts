@@ -1,6 +1,7 @@
 export class InputManager {
   private keys = new Set<string>();
   private pressed = new Set<string>();
+  private virtualHeld = new Set<string>();
   private scrollSteps = 0;
   private pointerX = 0;
   private pointerY = 0;
@@ -41,6 +42,7 @@ export class InputManager {
     window.removeEventListener("pointercancel", this.handlePointerUp);
     this.keys.clear();
     this.pressed.clear();
+    this.virtualHeld.clear();
     this.scrollSteps = 0;
     this.pointerDown = false;
   }
@@ -101,11 +103,32 @@ export class InputManager {
   }
 
   isLeftHeld(): boolean {
-    return this.keys.has("KeyA") || this.keys.has("ArrowLeft");
+    return (
+      this.keys.has("KeyA") ||
+      this.keys.has("ArrowLeft") ||
+      this.virtualHeld.has("ArrowLeft")
+    );
   }
 
   isRightHeld(): boolean {
-    return this.keys.has("KeyD") || this.keys.has("ArrowRight");
+    return (
+      this.keys.has("KeyD") ||
+      this.keys.has("ArrowRight") ||
+      this.virtualHeld.has("ArrowRight")
+    );
+  }
+
+  setVirtualHeld(code: string, isHeld: boolean): void {
+    if (isHeld) {
+      this.virtualHeld.add(code);
+      return;
+    }
+
+    this.virtualHeld.delete(code);
+  }
+
+  pressVirtual(code: string): void {
+    this.pressed.add(code);
   }
 
   consume(code: string): boolean {

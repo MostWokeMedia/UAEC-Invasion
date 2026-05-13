@@ -54,6 +54,7 @@ Implemented:
 | `Enter` | Start / restart |
 | `T` | Toggle sprites as a hidden dev tool |
 | `Up / Down Arrow` / mouse wheel / scrollbar drag | Scroll game-over leaderboard |
+| Touch buttons | Move, fire, and pause on coarse-pointer/mobile devices |
 
 ## Gameplay Rules
 
@@ -184,6 +185,7 @@ Next priorities:
 
 - Create cleaner individual final sprites
 - Add online leaderboard UI and 3-letter initials entry
+- Improve mobile initials entry and touch UX
 - Replace temporary test sprites
 - Improve Neo Tokyo / Citadel background
 - Add better explosion art

@@ -100,6 +100,7 @@ export class Game {
   private screenShakeStrength = 0;
   private leaderboardInitials = "";
   private leaderboardEntries: LeaderboardEntry[] = [];
+  private highlightedLeaderboardEntryId: number | null = null;
   private leaderboardScrollOffset = 0;
   private isDraggingLeaderboard = false;
   private leaderboardStatus:
@@ -432,10 +433,11 @@ export class Game {
       initials: this.leaderboardInitials,
       score: this.score,
       wave: this.wave,
-    }).then((submitted) => {
-      this.leaderboardStatus = submitted ? "submitted" : "failed";
+    }).then((entry) => {
+      this.leaderboardStatus = entry ? "submitted" : "failed";
 
-      if (submitted) {
+      if (entry) {
+        this.highlightedLeaderboardEntryId = entry.id;
         this.leaderboardLoadStarted = false;
         this.loadLeaderboard();
       }
@@ -455,6 +457,7 @@ export class Game {
 
   private resetLeaderboardEntry(): void {
     this.leaderboardInitials = "";
+    this.highlightedLeaderboardEntryId = null;
     this.leaderboardScrollOffset = 0;
     this.leaderboardStatus = isLeaderboardConfigured() ? "entering" : "disabled";
     this.leaderboardLoadStarted = false;
@@ -1029,6 +1032,7 @@ export class Game {
       earnedNewHighScore: this.earnedNewHighScore,
       leaderboardInitials: this.leaderboardInitials,
       leaderboardEntries: this.leaderboardEntries,
+      highlightedLeaderboardEntryId: this.highlightedLeaderboardEntryId,
       leaderboardScrollOffset: this.leaderboardScrollOffset,
       leaderboardStatus: this.leaderboardStatus,
     });

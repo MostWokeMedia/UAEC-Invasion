@@ -20,6 +20,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overscroll-behavior: none;
 }
 
 #app {
@@ -47,9 +48,74 @@ canvas {
     0 0 48px rgba(95, 205, 255, 0.12);
 }
 
+.touch-controls {
+  display: none;
+}
+
+.touch-button {
+  width: 72px;
+  height: 64px;
+  border: 2px solid rgba(158, 231, 255, 0.72);
+  background: rgba(3, 4, 10, 0.82);
+  color: #f5f7ff;
+  font: 28px "Courier New", monospace;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+  box-shadow:
+    0 0 14px rgba(158, 231, 255, 0.22),
+    inset 0 0 18px rgba(255, 79, 154, 0.10);
+}
+
+.touch-button-primary {
+  border-color: rgba(255, 79, 154, 0.82);
+  color: #fff7d6;
+  font-size: 32px;
+}
+
+.touch-button-small {
+  width: 56px;
+  font-size: 24px;
+}
+
+.touch-button:active {
+  background: rgba(255, 79, 154, 0.22);
+}
+
 .help {
   margin: 0;
   color: #a8b3cf;
   font-size: 14px;
   text-align: center;
+}
+
+@media (pointer: coarse), (max-width: 720px) {
+  body {
+    align-items: flex-start;
+  }
+
+  #game-shell {
+    width: 100%;
+    min-height: 100vh;
+    justify-content: center;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  canvas {
+    width: min(100vw - 16px, 960px);
+    max-height: calc(100vh - 112px);
+  }
+
+  .touch-controls {
+    width: min(100vw - 16px, 520px);
+    display: grid;
+    grid-template-columns: 72px 72px 72px 56px;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .help {
+    font-size: 12px;
+  }
 }

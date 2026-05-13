@@ -4,6 +4,7 @@ const LEADERBOARD_TABLE = "leaderboard_scores";
 const DEFAULT_LIMIT = 100;
 
 export type LeaderboardEntry = {
+  id: number;
   initials: string;
   score: number;
   wave: number;
@@ -19,6 +20,7 @@ export type LeaderboardSubmission = {
 };
 
 type LeaderboardRow = {
+  id: number;
   initials: string;
   score: number;
   wave: number;
@@ -55,7 +57,7 @@ export async function fetchLeaderboard(
   );
   endpoint.searchParams.set(
     "select",
-    "initials,score,wave,build_label,created_at",
+    "id,initials,score,wave,build_label,created_at",
   );
   endpoint.searchParams.set("order", "score.desc,created_at.asc");
   endpoint.searchParams.set("limit", String(limit));
@@ -73,12 +75,12 @@ export async function fetchLeaderboard(
 export async function submitLeaderboardScore(
   submission: LeaderboardSubmission,
   fetcher: typeof fetch = fetch,
-): Promise<boolean> {
+): Promise<LeaderboardEntry | null> {
   const config = getLeaderboardConfig();
-  if (!config) return false;
+  if (!config) return null;
 
   const initials = sanitizeInitials(submission.initials);
-  if (initials.length !== 3) return false;
+  if (initials.length !== 3) return null;
 
   const endpoint = new URL(
     `/rest/v1/${LEADERBOARD_TABLE}`,
@@ -88,7 +90,7 @@ export async function submitLeaderboardScore(
     method: "POST",
     headers: {
       ...getSupabaseHeaders(config),
-      Prefer: "return=minimal",
+      Prefer: "return=representation",
     },
     body: JSON.stringify({
       initials,
@@ -98,7 +100,12 @@ export async function submitLeaderboardScore(
     }),
   });
 
-  return response.ok;
+  if (!response.ok) return null;
+
+  const rows = (await response.json()) as LeaderboardRow[];
+  const row = rows[0];
+
+  return row ? mapLeaderboardRow(row) : null;
 }
 
 function getLeaderboardConfig(): LeaderboardConfig | null {
@@ -126,6 +133,7 @@ function ensureTrailingSlash(value: string): string {
 
 function mapLeaderboardRow(row: LeaderboardRow): LeaderboardEntry {
   return {
+    id: row.id,
     initials: row.initials,
     score: row.score,
     wave: row.wave,

@@ -15,6 +15,7 @@ export type GameOverScreenState = {
   earnedNewHighScore: boolean;
   leaderboardInitials: string;
   leaderboardEntries: LeaderboardEntry[];
+  highlightedLeaderboardEntryId: number | null;
   leaderboardScrollOffset: number;
   leaderboardStatus:
     | "disabled"
@@ -358,8 +359,9 @@ export class ScreenRenderer {
     this.ctx.textAlign = "left";
     this.ctx.font = "15px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("TAG", startX, startY);
-    this.ctx.fillText("SCORE", startX + 100, startY);
+    this.ctx.fillText("#", startX, startY);
+    this.ctx.fillText("TAG", startX + 54, startY);
+    this.ctx.fillText("SCORE", startX + 154, startY);
 
     this.ctx.fillStyle = "#f5f7ff";
 
@@ -377,8 +379,25 @@ export class ScreenRenderer {
 
     rows.forEach((entry, index) => {
       const y = startY + 34 + index * 28;
-      this.ctx.fillText(entry.initials, startX, y);
-      this.ctx.fillText(String(entry.score).padStart(6, "0"), startX + 100, y);
+      const isHighlighted = entry.id === state.highlightedLeaderboardEntryId;
+
+      if (isHighlighted) {
+        this.drawHighlightedLeaderboardRow(startX, y);
+        this.ctx.fillStyle = "#fff0a8";
+        this.ctx.shadowColor = "#ffd35a";
+        this.ctx.shadowBlur = 12;
+      } else {
+        this.ctx.fillStyle = "#f5f7ff";
+        this.ctx.shadowBlur = 0;
+      }
+
+      this.ctx.fillText(String(scrollOffset + index + 1).padStart(3, "0"), startX, y);
+      this.ctx.fillText(entry.initials, startX + 54, y);
+      this.ctx.fillText(String(entry.score).padStart(6, "0"), startX + 154, y);
+
+      if (isHighlighted) {
+        this.ctx.shadowBlur = 0;
+      }
     });
 
     if (state.leaderboardEntries.length > visibleRows) {
@@ -390,6 +409,19 @@ export class ScreenRenderer {
         scrollOffset,
       );
     }
+  }
+
+  private drawHighlightedLeaderboardRow(startX: number, textY: number): void {
+    this.ctx.save();
+    this.ctx.shadowColor = "#ffd35a";
+    this.ctx.shadowBlur = 18;
+    this.ctx.fillStyle = "rgba(255, 211, 90, 0.16)";
+    this.ctx.fillRect(startX - 12, textY - 19, 250, 24);
+
+    this.ctx.strokeStyle = "rgba(255, 211, 90, 0.65)";
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(startX - 12, textY - 19, 250, 24);
+    this.ctx.restore();
   }
 
   private drawLeaderboardScrollbar(
