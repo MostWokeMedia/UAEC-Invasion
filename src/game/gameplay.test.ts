@@ -46,10 +46,10 @@ describe("createEnemies", () => {
 });
 
 describe("createBarricades", () => {
-  it("creates four barricades with bottom center gaps", () => {
+  it("creates four full 6x3 barricades", () => {
     const blocks = createBarricades();
 
-    expect(blocks).toHaveLength(64);
+    expect(blocks).toHaveLength(72);
     expect(blocks).toContainEqual({
       x: 142,
       y: 592,
@@ -58,13 +58,13 @@ describe("createBarricades", () => {
       hp: 2,
       active: true,
     });
-    expect(blocks).not.toContainEqual(
+    expect(blocks).toContainEqual(
       expect.objectContaining({
         x: 174,
         y: 624,
       }),
     );
-    expect(blocks).not.toContainEqual(
+    expect(blocks).toContainEqual(
       expect.objectContaining({
         x: 190,
         y: 624,

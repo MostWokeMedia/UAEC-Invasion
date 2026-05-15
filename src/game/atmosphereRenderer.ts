@@ -2,31 +2,48 @@ import { HEIGHT, WIDTH } from "./constants";
 
 export class AtmosphereRenderer {
   private ctx: CanvasRenderingContext2D;
+  private gameplayReadabilityVeil: HTMLCanvasElement;
+  private crtOverlay: HTMLCanvasElement;
+  private vignetteOverlay: HTMLCanvasElement;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
+    this.gameplayReadabilityVeil = this.createGameplayReadabilityVeil();
+    this.crtOverlay = this.createCrtOverlay();
+    this.vignetteOverlay = this.createVignetteOverlay();
   }
 
   drawGameplayReadabilityVeil(): void {
+    this.ctx.drawImage(this.gameplayReadabilityVeil, 0, 0);
+  }
+
+  drawAtmosphereOverlay(): void {
     this.ctx.save();
 
+    this.drawRainOverlay();
+    this.ctx.drawImage(this.crtOverlay, 0, 0);
+    this.ctx.drawImage(this.vignetteOverlay, 0, 0);
+
+    this.ctx.restore();
+  }
+
+  private createGameplayReadabilityVeil(): HTMLCanvasElement {
+    const canvas = this.createOverlayCanvas();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return canvas;
+
     const playfieldTop = 86;
-    const verticalVeil = this.ctx.createLinearGradient(
-      0,
-      playfieldTop,
-      0,
-      HEIGHT,
-    );
+    const verticalVeil = ctx.createLinearGradient(0, playfieldTop, 0, HEIGHT);
 
     verticalVeil.addColorStop(0, "rgba(2, 5, 15, 0.50)");
     verticalVeil.addColorStop(0.42, "rgba(2, 5, 15, 0.40)");
     verticalVeil.addColorStop(0.72, "rgba(2, 5, 15, 0.28)");
     verticalVeil.addColorStop(1, "rgba(2, 5, 15, 0.18)");
 
-    this.ctx.fillStyle = verticalVeil;
-    this.ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
+    ctx.fillStyle = verticalVeil;
+    ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
 
-    const centerVeil = this.ctx.createRadialGradient(
+    const centerVeil = ctx.createRadialGradient(
       WIDTH / 2,
       360,
       60,
@@ -39,20 +56,68 @@ export class AtmosphereRenderer {
     centerVeil.addColorStop(0.62, "rgba(0, 0, 0, 0.18)");
     centerVeil.addColorStop(1, "rgba(0, 0, 0, 0)");
 
-    this.ctx.fillStyle = centerVeil;
-    this.ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
+    ctx.fillStyle = centerVeil;
+    ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
 
-    this.ctx.restore();
+    return canvas;
   }
 
-  drawAtmosphereOverlay(): void {
-    this.ctx.save();
+  private createCrtOverlay(): HTMLCanvasElement {
+    const canvas = this.createOverlayCanvas();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return canvas;
 
-    this.drawRainOverlay();
-    this.drawCrtOverlay();
-    this.drawVignetteOverlay();
+    ctx.globalAlpha = 0.10;
+    ctx.fillStyle = "#f5f7ff";
 
-    this.ctx.restore();
+    for (let y = 0; y < HEIGHT; y += 4) {
+      ctx.fillRect(0, y, WIDTH, 1);
+    }
+
+    ctx.globalAlpha = 0.06;
+    ctx.fillStyle = "#ff4f9a";
+
+    for (let x = 0; x < WIDTH; x += 6) {
+      ctx.fillRect(x, 0, 1, HEIGHT);
+    }
+
+    return canvas;
+  }
+
+  private createVignetteOverlay(): HTMLCanvasElement {
+    const canvas = this.createOverlayCanvas();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return canvas;
+
+    const gradient = ctx.createRadialGradient(
+      WIDTH / 2,
+      HEIGHT / 2,
+      120,
+      WIDTH / 2,
+      HEIGHT / 2,
+      620,
+    );
+
+    gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+    gradient.addColorStop(0.62, "rgba(0, 0, 0, 0.10)");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0.58)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.globalAlpha = 0.10;
+    ctx.strokeStyle = "#ff4f9a";
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, WIDTH - 8, HEIGHT - 8);
+
+    return canvas;
+  }
+
+  private createOverlayCanvas(): HTMLCanvasElement {
+    const canvas = document.createElement("canvas");
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    return canvas;
   }
 
   private drawRainOverlay(): void {
@@ -81,47 +146,4 @@ export class AtmosphereRenderer {
     this.ctx.restore();
   }
 
-  private drawCrtOverlay(): void {
-    this.ctx.save();
-    this.ctx.globalAlpha = 0.10;
-    this.ctx.fillStyle = "#f5f7ff";
-
-    for (let y = 0; y < HEIGHT; y += 4) {
-      this.ctx.fillRect(0, y, WIDTH, 1);
-    }
-
-    this.ctx.globalAlpha = 0.06;
-    this.ctx.fillStyle = "#ff4f9a";
-
-    for (let x = 0; x < WIDTH; x += 6) {
-      this.ctx.fillRect(x, 0, 1, HEIGHT);
-    }
-
-    this.ctx.restore();
-  }
-
-  private drawVignetteOverlay(): void {
-    const gradient = this.ctx.createRadialGradient(
-      WIDTH / 2,
-      HEIGHT / 2,
-      120,
-      WIDTH / 2,
-      HEIGHT / 2,
-      620,
-    );
-
-    gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(0.62, "rgba(0, 0, 0, 0.10)");
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0.58)");
-
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-    this.ctx.save();
-    this.ctx.globalAlpha = 0.10;
-    this.ctx.strokeStyle = "#ff4f9a";
-    this.ctx.lineWidth = 8;
-    this.ctx.strokeRect(4, 4, WIDTH - 8, HEIGHT - 8);
-    this.ctx.restore();
-  }
 }

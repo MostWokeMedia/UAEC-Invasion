@@ -2,7 +2,7 @@
 
 ## Current Target
 
-Desktop browser release candidate. Mobile support is postponed until after the desktop version feels finished.
+Desktop browser release candidate with touch controls and online leaderboard enabled.
 
 ## Pre-Change Safety
 
@@ -41,6 +41,11 @@ Desktop browser release candidate. Mobile support is postponed until after the d
 - [ ] Hidden 300-point tank scoring works.
 - [ ] Score and high score work.
 - [ ] High score persists after reload.
+- [ ] Game-over initials entry appears for leaderboard-worthy scores.
+- [ ] Online leaderboard submission works.
+- [ ] Online leaderboard loads on the game-over screen.
+- [ ] Current submitted leaderboard row is highlighted.
+- [ ] Leaderboard scrolling works with Up/Down, mouse wheel, and scrollbar drag.
 - [ ] Music toggles with M.
 - [ ] SFX toggles with N.
 - [ ] Music and SFX mute settings persist after reload.
@@ -60,6 +65,7 @@ Desktop browser release candidate. Mobile support is postponed until after the d
 - [ ] Explosions feel good.
 - [ ] Background does not distract.
 - [ ] HUD is readable.
+- [ ] Leaderboard text is readable and does not overlap at game over.
 
 ## Balance Review
 
@@ -103,8 +109,6 @@ Desktop browser release candidate. Mobile support is postponed until after the d
 
 ## Known Deferred Items
 
-- [ ] Mobile controls
 - [ ] Advanced settings menu
-- [ ] Online leaderboard
 - [ ] Final trailer/GIF
 - [ ] Full release landing page

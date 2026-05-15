@@ -39,6 +39,11 @@ All notable project changes should be documented here.
 - Added responsive touch controls for movement, firing, and pause on mobile/coarse-pointer devices.
 - Improved browser audio unlocking so SFX and music can recover from autoplay restrictions on key/click input.
 - Fixed the enemy sprite render path so the intended crisp readable pass is actually drawn.
+- Added generated barricade atlas rendering with full 6x3 barricade coverage and weathered damage visuals.
+- Redrew player and enemy projectile sprites with tighter bounds and aligned collision/render sizing.
+- Adjusted player visual scale and lowered the player hitbox to match the sprite position.
+- Added tank rumble SFX and a procedural dust trail while the tank is active.
+- Cached static atmosphere overlays and barricade rendering to reduce per-frame work.
 
 ### Moved
 

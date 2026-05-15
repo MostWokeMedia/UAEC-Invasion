@@ -48,18 +48,14 @@ export function createBarricades(): BarricadeBlock[] {
 
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 6; col++) {
-        const isGap = row === 2 && (col === 2 || col === 3);
-
-        if (!isGap) {
-          blocks.push({
-            x: startX + col * BARRICADE_BLOCK_SIZE,
-            y: BARRICADE_START_Y + row * BARRICADE_BLOCK_SIZE,
-            width: BARRICADE_BLOCK_SIZE - 2,
-            height: BARRICADE_BLOCK_SIZE - 2,
-            hp: 2,
-            active: true,
-          });
-        }
+        blocks.push({
+          x: startX + col * BARRICADE_BLOCK_SIZE,
+          y: BARRICADE_START_Y + row * BARRICADE_BLOCK_SIZE,
+          width: BARRICADE_BLOCK_SIZE - 2,
+          height: BARRICADE_BLOCK_SIZE - 2,
+          hp: 2,
+          active: true,
+        });
       }
     }
   }

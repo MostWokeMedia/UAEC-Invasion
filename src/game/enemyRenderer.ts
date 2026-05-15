@@ -59,6 +59,7 @@ export class EnemyRenderer {
     const bob = frame === 0 ? 0 : rect.height * ENEMY_SPRITE.bobRatio;
     const typeScale = ENEMY_SPRITE.typeScale[enemy.type];
     const typeXOffset = ENEMY_SPRITE.typeXOffset[enemy.type];
+    const typeYOffset = ENEMY_SPRITE.typeYOffset[enemy.type];
 
     const drawWidth = rect.width * ENEMY_SPRITE.widthScale * typeScale;
     const drawHeight = rect.height * ENEMY_SPRITE.heightScale * typeScale;
@@ -70,7 +71,7 @@ export class EnemyRenderer {
       ENEMY_SPRITE.xOffset +
       typeXOffset;
 
-    const drawY = rect.y + rect.height - drawHeight + bob;
+    const drawY = rect.y + rect.height - drawHeight + bob + typeYOffset;
 
     this.ctx.save();
     this.ctx.imageSmoothingEnabled = false;

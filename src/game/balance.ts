@@ -8,7 +8,7 @@ export const BALANCE = {
 
     // Visual sprite is large and shows upper body/launcher.
     // Collision should sit lower so enemy shots must hit the player's body zone.
-    hitboxYOffset: 22,
+    hitboxYOffset: 40,
   },
 
   formation: {

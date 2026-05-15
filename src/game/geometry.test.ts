@@ -32,7 +32,7 @@ describe("getPlayerHitbox", () => {
 
     expect(getPlayerHitbox(player)).toEqual({
       x: 100,
-      y: 622,
+      y: 640,
       width: 48,
       height: 38,
     });

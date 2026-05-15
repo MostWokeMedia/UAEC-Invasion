@@ -78,10 +78,10 @@ export class EffectsRenderer {
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.drawImage(
           enemyProjectileSprite,
-          projectile.x + PROJECTILE_SPRITE.enemyXOffset,
-          projectile.y + PROJECTILE_SPRITE.enemyYOffset,
-          PROJECTILE_SPRITE.enemyWidth,
-          PROJECTILE_SPRITE.enemyHeight,
+          projectile.x + PROJECTILE_SPRITE.enemySpriteXOffset,
+          projectile.y + PROJECTILE_SPRITE.enemySpriteYOffset,
+          PROJECTILE_SPRITE.enemySpriteWidth,
+          PROJECTILE_SPRITE.enemySpriteHeight,
         );
         this.ctx.restore();
         continue;

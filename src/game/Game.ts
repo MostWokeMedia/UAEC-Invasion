@@ -12,7 +12,7 @@ import {
   findEnemyProjectileHit,
 } from "./collision";
 import { EffectsRenderer } from "./effectsRenderer";
-import { EnemyRenderer } from "./enemyRenderer";
+import { EnemyRenderer, type EnemyRenderItem } from "./enemyRenderer";
 import { FloatingTextRenderer } from "./floatingTextRenderer";
 import {
   getEnemyRect,
@@ -41,7 +41,7 @@ import {
   submitLeaderboardScore,
   type LeaderboardEntry,
 } from "./leaderboard";
-import { EXPLOSION_SPRITE } from "./rendering";
+import { EXPLOSION_SPRITE, PROJECTILE_SPRITE } from "./rendering";
 import { ScreenRenderer } from "./screenRenderer";
 import { SpriteRenderer } from "./spriteRenderer";
 import { readNumber, writeNumber } from "./storage";
@@ -93,6 +93,7 @@ export class Game {
   private barricadeBlocks: BarricadeBlock[] = [];
   private playerMissile: Projectile | null = null;
   private enemyProjectiles: Projectile[] = [];
+  private enemyRenderItems: EnemyRenderItem[] = [];
   private floatingTexts: FloatingText[] = [];
   private explosions: Explosion[] = [];
   private playerFireFlashMs = 0;
@@ -239,6 +240,7 @@ export class Game {
 
     if (pausePressed && this.mode === "playing") {
       this.audio.pauseMusic();
+      this.audio.stopTankRumble();
       this.mode = "paused";
       return;
     }
@@ -527,6 +529,7 @@ export class Game {
 
   private enterGameOver(): void {
     this.mode = "game-over";
+    this.audio.stopTankRumble();
     this.resetLeaderboardEntry();
     this.loadLeaderboard();
   }
@@ -538,6 +541,7 @@ export class Game {
     this.enemyProjectiles = [];
     this.floatingTexts = [];
     this.explosions = [];
+    this.audio.stopTankRumble();
 
     this.player.x = WIDTH / 2 - this.player.width / 2;
     this.player.y = HEIGHT - 78;
@@ -646,10 +650,10 @@ export class Game {
 
     this.enemyProjectiles.push({
       owner: "enemy",
-      x: rect.x + rect.width / 2 - 4,
+      x: rect.x + rect.width / 2 - PROJECTILE_SPRITE.enemyCollisionWidth / 2,
       y: rect.y + rect.height,
-      width: 8,
-      height: 18,
+      width: PROJECTILE_SPRITE.enemyCollisionWidth,
+      height: PROJECTILE_SPRITE.enemyCollisionHeight,
       speedY:
         BALANCE.enemies.baseProjectileSpeed +
         this.wave * BALANCE.enemies.projectileSpeedPerWave,
@@ -663,10 +667,12 @@ export class Game {
     const dt = dtMs / 1000;
 
     if (this.tank.active) {
+      this.audio.startTankRumble();
       this.tank.x += this.tank.direction * this.tank.speed * dt;
 
       if (this.tank.direction === 1 && this.tank.x > WIDTH + 170) {
         this.tank.active = false;
+        this.audio.stopTankRumble();
         this.tank.spawnTimerMs =
           BALANCE.tank.respawnMinMs +
           Math.random() * BALANCE.tank.respawnRandomBonusMs;
@@ -674,6 +680,7 @@ export class Game {
 
       if (this.tank.direction === -1 && this.tank.x < -190) {
         this.tank.active = false;
+        this.audio.stopTankRumble();
         this.tank.spawnTimerMs =
           BALANCE.tank.respawnMinMs +
           Math.random() * BALANCE.tank.respawnRandomBonusMs;
@@ -698,6 +705,7 @@ export class Game {
         speed: BALANCE.tank.baseSpeed + this.wave * BALANCE.tank.speedPerWave,
         spawnTimerMs: 0,
       };
+      this.audio.startTankRumble();
     }
   }
 
@@ -752,6 +760,7 @@ export class Game {
 
       this.playerMissile = null;
       this.tank.active = false;
+      this.audio.stopTankRumble();
       this.tank.spawnTimerMs =
         BALANCE.tank.respawnMinMs +
         1000 +
@@ -796,12 +805,13 @@ export class Game {
 
   private handleEnemyProjectileCollisions(): void {
     const remainingProjectiles: Projectile[] = [];
+    const playerHitbox = this.getPlayerHitbox();
 
     for (const projectile of this.enemyProjectiles) {
       const hit = findEnemyProjectileHit(
         projectile,
         this.barricadeBlocks,
-        this.getPlayerHitbox(),
+        playerHitbox,
         this.player,
       );
 
@@ -812,8 +822,14 @@ export class Game {
 
       if (hit?.type === "player") {
         this.explosions.push({
-          x: this.player.x + this.player.width / 2 - EXPLOSION_SPRITE.playerWidth / 2,
-          y: this.player.y + this.player.height / 2 - EXPLOSION_SPRITE.playerHeight / 2,
+          x:
+            playerHitbox.x +
+            playerHitbox.width / 2 -
+            EXPLOSION_SPRITE.playerWidth / 2,
+          y:
+            playerHitbox.y +
+            playerHitbox.height / 2 -
+            EXPLOSION_SPRITE.playerHeight / 2,
           width: EXPLOSION_SPRITE.playerWidth,
           height: EXPLOSION_SPRITE.playerHeight,
           lifeMs: 680,
@@ -827,6 +843,7 @@ export class Game {
         this.playerMissile = null;
         this.mode = "player-hit";
         this.modeTimerMs = BALANCE.screens.playerHitPauseMs;
+        this.audio.stopTankRumble();
         this.audio.playPlayerHit();
         return;
       }
@@ -843,6 +860,7 @@ export class Game {
       this.modeTimerMs = BALANCE.screens.waveClearPauseMs;
       this.playerMissile = null;
       this.enemyProjectiles = [];
+      this.audio.stopTankRumble();
       this.audio.playWaveClear();
       return;
     }
@@ -965,14 +983,18 @@ export class Game {
   }
 
   private drawEnemies(): void {
-    const items = this.enemies
-      .filter((enemy) => enemy.alive)
-      .map((enemy) => ({
+    this.enemyRenderItems.length = 0;
+
+    for (const enemy of this.enemies) {
+      if (!enemy.alive) continue;
+
+      this.enemyRenderItems.push({
         enemy,
         rect: this.getEnemyRect(enemy),
-      }));
+      });
+    }
 
-    this.enemyRenderer.draw(items, this.formation.animationFrame);
+    this.enemyRenderer.draw(this.enemyRenderItems, this.formation.animationFrame);
   }
 
   private drawTank(): void {

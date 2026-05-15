@@ -6,6 +6,9 @@ const SFX_MUTED_KEY = "uaec-sfx-muted";
 export class AudioManager {
   private context: AudioContext | null = null;
   private sfxGain: GainNode | null = null;
+  private tankRumbleOscillator: OscillatorNode | null = null;
+  private tankRumbleOvertone: OscillatorNode | null = null;
+  private tankRumbleGain: GainNode | null = null;
   private music: HTMLAudioElement | null = null;
   private unlockHandler: (() => void) | null = null;
 
@@ -38,6 +41,7 @@ export class AudioManager {
   }
 
   dispose(): void {
+    this.stopTankRumble();
     this.removeAudioUnlock();
   }
 
@@ -80,6 +84,75 @@ export class AudioManager {
     if (this.sfxGain) {
       this.sfxGain.gain.value = this.sfxMuted ? 0 : 0.40;
     }
+
+    if (this.sfxMuted) {
+      this.stopTankRumble();
+    }
+  }
+
+  startTankRumble(): void {
+    if (this.tankRumbleOscillator || this.sfxMuted) return;
+
+    this.initializeSfx();
+
+    if (!this.context || !this.sfxGain) return;
+
+    const now = this.context.currentTime;
+    const rumble = this.context.createOscillator();
+    const overtone = this.context.createOscillator();
+    const gain = this.context.createGain();
+
+    rumble.type = "sawtooth";
+    rumble.frequency.setValueAtTime(38, now);
+
+    overtone.type = "triangle";
+    overtone.frequency.setValueAtTime(62, now);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.026, now + 0.18);
+
+    rumble.connect(gain);
+    overtone.connect(gain);
+    gain.connect(this.sfxGain);
+
+    rumble.start(now);
+    overtone.start(now);
+
+    this.tankRumbleOscillator = rumble;
+    this.tankRumbleOvertone = overtone;
+    this.tankRumbleGain = gain;
+  }
+
+  stopTankRumble(): void {
+    if (!this.context || !this.tankRumbleOscillator || !this.tankRumbleGain) {
+      this.tankRumbleOscillator = null;
+      this.tankRumbleOvertone = null;
+      this.tankRumbleGain = null;
+      return;
+    }
+
+    const now = this.context.currentTime;
+    const stopAt = now + 0.14;
+    const rumble = this.tankRumbleOscillator;
+    const overtone = this.tankRumbleOvertone;
+    const gain = this.tankRumbleGain;
+
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.linearRampToValueAtTime(0.001, stopAt);
+
+    rumble.stop(stopAt);
+    overtone?.stop(stopAt);
+
+    window.setTimeout(() => {
+      rumble.disconnect();
+      overtone?.disconnect();
+      gain.disconnect();
+    }, 180);
+
+    this.tankRumbleOscillator = null;
+    this.tankRumbleOvertone = null;
+    this.tankRumbleGain = null;
   }
 
   playHeartbeat(aliveCount: number): void {

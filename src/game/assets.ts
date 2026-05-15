@@ -12,6 +12,7 @@ export type SpriteKey =
   | "uaecTank"
   | "playerMissile"
   | "enemyProjectile"
+  | "barricadeCells"
   | "barricadeFull"
   | "barricadeDamaged"
   | "explosion1"
@@ -39,6 +40,7 @@ const SPRITE_PATHS: Record<SpriteKey, string> = {
   playerMissile: "/assets/sprites/projectiles/player_missile.png",
   enemyProjectile: "/assets/sprites/projectiles/enemy_projectile.png",
 
+  barricadeCells: "/assets/sprites/barricades/generated/barricade_cells.png",
   barricadeFull: "/assets/sprites/barricades/concrete_block_full.png",
   barricadeDamaged: "/assets/sprites/barricades/concrete_block_damaged.png",
 
