@@ -1,5 +1,5 @@
 import type { SpriteManager } from "./assets";
-import { CANVAS_WIDTH, PLAYFIELD_X, WIDTH } from "./constants";
+import { CANVAS_WIDTH } from "./constants";
 import type { SpriteRenderer } from "./spriteRenderer";
 
 export type HudState = {
@@ -60,30 +60,30 @@ export class HudRenderer {
     this.ctx.textAlign = "left";
     this.ctx.font = "15px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("SCORE", PLAYFIELD_X + 28, 26);
-    this.ctx.fillText("HI-SCORE", PLAYFIELD_X + 224, 26);
-    this.ctx.fillText("WAVE", PLAYFIELD_X + 454, 26);
-    this.ctx.fillText("LIVES", PLAYFIELD_X + 610, 26);
+    this.ctx.fillText("SCORE", 72, 26);
+    this.ctx.fillText("HI-SCORE", 316, 26);
+    this.ctx.fillText("WAVE", CANVAS_WIDTH / 2 - 28, 26);
+    this.ctx.fillText("LIVES", 846, 26);
   }
 
   private drawValues(state: HudState): void {
     this.ctx.font = "28px 'Courier New', monospace";
 
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText(String(state.score).padStart(6, "0"), PLAYFIELD_X + 28, 62);
+    this.ctx.fillText(String(state.score).padStart(6, "0"), 72, 62);
 
     this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillText(String(state.highScore).padStart(6, "0"), PLAYFIELD_X + 224, 62);
+    this.ctx.fillText(String(state.highScore).padStart(6, "0"), 316, 62);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText(String(state.wave).padStart(2, "0"), PLAYFIELD_X + 454, 62);
+    this.ctx.fillText(String(state.wave).padStart(2, "0"), CANVAS_WIDTH / 2 - 26, 62);
   }
 
   private drawLives(lives: number): void {
     const lifeHeadSprite = this.sprites.get("citizenLifeHead");
 
     for (let i = 0; i < lives; i++) {
-      const x = PLAYFIELD_X + 612 + i * 38;
+      const x = 848 + i * 38;
       const y = 38;
 
       if (lifeHeadSprite) {
@@ -107,9 +107,9 @@ export class HudRenderer {
     this.ctx.font = "15px 'Courier New', monospace";
 
     this.ctx.fillStyle = state.isMusicMuted ? "#ff4f9a" : "#9ee7ff";
-    this.ctx.fillText(state.isMusicMuted ? "MUSIC OFF [M]" : "MUSIC [M]", PLAYFIELD_X + WIDTH - 28, 26);
+    this.ctx.fillText(state.isMusicMuted ? "MUSIC OFF [M]" : "MUSIC [M]", CANVAS_WIDTH - 72, 26);
 
     this.ctx.fillStyle = state.isSfxMuted ? "#ff4f9a" : "#9ee7ff";
-    this.ctx.fillText(state.isSfxMuted ? "SFX OFF [N]" : "SFX [N]", PLAYFIELD_X + WIDTH - 28, 50);
+    this.ctx.fillText(state.isSfxMuted ? "SFX OFF [N]" : "SFX [N]", CANVAS_WIDTH - 72, 50);
   }
 }
