@@ -6,6 +6,7 @@ All notable project changes should be documented here.
 
 ### Changed
 
+- Replaced enemy explosion placeholder sprites with a sharper three-frame pixel-art blast sequence.
 - Repaired `README.md` so it is valid Markdown and removed the accidental pasted shell fragment.
 - Added safety/revert guidance to `RELEASE_CHECKLIST.md`.
 - Added lightweight verification scripts and Vitest-based logic tests.

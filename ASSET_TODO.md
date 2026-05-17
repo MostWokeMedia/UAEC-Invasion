@@ -18,9 +18,9 @@
 
 ## Priority 2 — Effects
 
-- [ ] Enemy explosion frame 1
-- [ ] Enemy explosion frame 2
-- [ ] Enemy explosion frame 3
+- [x] Enemy explosion frame 1
+- [x] Enemy explosion frame 2
+- [x] Enemy explosion frame 3
 - [ ] Tank explosion
 - [ ] Player hit effect
 - [ ] Wave clear effect
