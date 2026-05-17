@@ -1,5 +1,5 @@
 import "./style.css";
-import { HEIGHT, WIDTH } from "./game/constants";
+import { CANVAS_WIDTH, HEIGHT } from "./game/constants";
 import { Game } from "./game/Game";
 import { AudioManager } from "./game/audio";
 import { InputManager } from "./game/input";
@@ -13,7 +13,7 @@ if (!app) {
 
 app.innerHTML = `
   <div id="game-shell">
-    <canvas id="game" width="${WIDTH}" height="${HEIGHT}"></canvas>
+    <canvas id="game" width="${CANVAS_WIDTH}" height="${HEIGHT}"></canvas>
     <div class="touch-controls" aria-hidden="false">
       <button class="touch-button" type="button" data-hold-code="ArrowLeft" aria-label="Move left">◀</button>
       <button class="touch-button touch-button-primary" type="button" data-press-code="Space" aria-label="Fire">●</button>

@@ -1,4 +1,4 @@
-import { HEIGHT, WIDTH } from "./constants";
+import { CANVAS_WIDTH, HEIGHT, PLAYFIELD_X, WIDTH } from "./constants";
 
 export class AtmosphereRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -41,13 +41,13 @@ export class AtmosphereRenderer {
     verticalVeil.addColorStop(1, "rgba(2, 5, 15, 0.18)");
 
     ctx.fillStyle = verticalVeil;
-    ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
+    ctx.fillRect(0, playfieldTop, CANVAS_WIDTH, HEIGHT - playfieldTop);
 
     const centerVeil = ctx.createRadialGradient(
-      WIDTH / 2,
+      PLAYFIELD_X + WIDTH / 2,
       360,
       60,
-      WIDTH / 2,
+      PLAYFIELD_X + WIDTH / 2,
       360,
       470,
     );
@@ -57,7 +57,7 @@ export class AtmosphereRenderer {
     centerVeil.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     ctx.fillStyle = centerVeil;
-    ctx.fillRect(0, playfieldTop, WIDTH, HEIGHT - playfieldTop);
+    ctx.fillRect(0, playfieldTop, CANVAS_WIDTH, HEIGHT - playfieldTop);
 
     return canvas;
   }
@@ -71,13 +71,13 @@ export class AtmosphereRenderer {
     ctx.fillStyle = "#f5f7ff";
 
     for (let y = 0; y < HEIGHT; y += 4) {
-      ctx.fillRect(0, y, WIDTH, 1);
+      ctx.fillRect(0, y, CANVAS_WIDTH, 1);
     }
 
     ctx.globalAlpha = 0.06;
     ctx.fillStyle = "#ff4f9a";
 
-    for (let x = 0; x < WIDTH; x += 6) {
+    for (let x = 0; x < CANVAS_WIDTH; x += 6) {
       ctx.fillRect(x, 0, 1, HEIGHT);
     }
 
@@ -90,10 +90,10 @@ export class AtmosphereRenderer {
     if (!ctx) return canvas;
 
     const gradient = ctx.createRadialGradient(
-      WIDTH / 2,
+      CANVAS_WIDTH / 2,
       HEIGHT / 2,
       120,
-      WIDTH / 2,
+      CANVAS_WIDTH / 2,
       HEIGHT / 2,
       620,
     );
@@ -103,19 +103,19 @@ export class AtmosphereRenderer {
     gradient.addColorStop(1, "rgba(0, 0, 0, 0.58)");
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
     ctx.globalAlpha = 0.10;
     ctx.strokeStyle = "#ff4f9a";
     ctx.lineWidth = 8;
-    ctx.strokeRect(4, 4, WIDTH - 8, HEIGHT - 8);
+    ctx.strokeRect(4, 4, CANVAS_WIDTH - 8, HEIGHT - 8);
 
     return canvas;
   }
 
   private createOverlayCanvas(): HTMLCanvasElement {
     const canvas = document.createElement("canvas");
-    canvas.width = WIDTH;
+    canvas.width = CANVAS_WIDTH;
     canvas.height = HEIGHT;
     return canvas;
   }
@@ -131,9 +131,9 @@ export class AtmosphereRenderer {
     this.ctx.lineWidth = 1;
 
     for (let i = 0; i < rainCount; i++) {
-      const seedX = (i * 97) % WIDTH;
+      const seedX = (i * 97) % CANVAS_WIDTH;
       const seedY = (i * 53) % HEIGHT;
-      const x = (seedX + Math.sin(i * 12.9898) * 40 + fallSpeed * 0.16) % WIDTH;
+      const x = (seedX + Math.sin(i * 12.9898) * 40 + fallSpeed * 0.16) % CANVAS_WIDTH;
       const y = (seedY + fallSpeed + i * 17) % HEIGHT;
       const length = 10 + (i % 4) * 4;
 

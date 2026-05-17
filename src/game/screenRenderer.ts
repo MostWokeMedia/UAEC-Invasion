@@ -1,5 +1,5 @@
 import type { LeaderboardEntry } from "./leaderboard";
-import { HEIGHT, WIDTH } from "./constants";
+import { CANVAS_WIDTH, HEIGHT } from "./constants";
 import { BUILD_LABEL } from "./metadata";
 
 export type StartScreenState = {
@@ -53,9 +53,9 @@ export class ScreenRenderer {
     drawBackground();
 
     this.ctx.fillStyle = "rgba(0, 0, 0, 0.58)";
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
-    const panelX = WIDTH / 2 - 320;
+    const panelX = CANVAS_WIDTH / 2 - 320;
     const panelY = 104;
     const panelW = 640;
     const panelH = 530;
@@ -76,32 +76,32 @@ export class ScreenRenderer {
     this.ctx.globalAlpha = titleFlicker;
     this.ctx.font = "76px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("UAEC", WIDTH / 2, panelY + 92);
+    this.ctx.fillText("UAEC", CANVAS_WIDTH / 2, panelY + 92);
 
     this.ctx.font = "68px 'Courier New', monospace";
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("INVASION", WIDTH / 2, panelY + 156);
+    this.ctx.fillText("INVASION", CANVAS_WIDTH / 2, panelY + 156);
 
     this.ctx.strokeStyle = "#9ee7ff";
     this.ctx.lineWidth = 2;
-    this.ctx.strokeText("INVASION", WIDTH / 2, panelY + 156);
+    this.ctx.strokeText("INVASION", CANVAS_WIDTH / 2, panelY + 156);
     this.ctx.restore();
 
     this.ctx.font = "21px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("THE CITADEL IS UNDER LOCKDOWN.", WIDTH / 2, panelY + 218);
+    this.ctx.fillText("THE CITADEL IS UNDER LOCKDOWN.", CANVAS_WIDTH / 2, panelY + 218);
 
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("THE UAEC ARE ADVANCING.", WIDTH / 2, panelY + 252);
+    this.ctx.fillText("THE UAEC ARE ADVANCING.", CANVAS_WIDTH / 2, panelY + 252);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("HOLD THE LINE.", WIDTH / 2, panelY + 286);
+    this.ctx.fillText("HOLD THE LINE.", CANVAS_WIDTH / 2, panelY + 286);
 
     this.ctx.save();
     this.ctx.globalAlpha = promptPulse;
     this.ctx.font = "28px 'Courier New', monospace";
     this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillText("PRESS ENTER OR SPACE", WIDTH / 2, panelY + 348);
+    this.ctx.fillText("PRESS ENTER OR SPACE", CANVAS_WIDTH / 2, panelY + 348);
     this.ctx.restore();
 
     this.drawStartControls(panelY, state);
@@ -115,7 +115,7 @@ export class ScreenRenderer {
     const pulse = 0.62 + Math.sin(time * 8) * 0.28;
 
     this.ctx.fillStyle = "rgba(0, 0, 0, 0.68)";
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
     this.ctx.textAlign = "center";
 
@@ -123,72 +123,72 @@ export class ScreenRenderer {
     this.ctx.globalAlpha = pulse;
     this.ctx.strokeStyle = "#ff355d";
     this.ctx.lineWidth = 4;
-    this.ctx.strokeRect(70, 70, WIDTH - 140, HEIGHT - 140);
+    this.ctx.strokeRect(70, 70, CANVAS_WIDTH - 140, HEIGHT - 140);
     this.ctx.restore();
 
     if (lives > 0) {
       this.ctx.font = "54px 'Courier New', monospace";
       this.ctx.fillStyle = "#ff4f9a";
-      this.ctx.fillText("SIGNAL DISRUPTED", WIDTH / 2, HEIGHT / 2 - 70);
+      this.ctx.fillText("SIGNAL DISRUPTED", CANVAS_WIDTH / 2, HEIGHT / 2 - 70);
 
       this.ctx.font = "24px 'Courier New', monospace";
       this.ctx.fillStyle = "#f5f7ff";
       this.ctx.fillText(
         `LIVES REMAINING: ${String(lives).padStart(2, "0")}`,
-        WIDTH / 2,
+        CANVAS_WIDTH / 2,
         HEIGHT / 2 - 18,
       );
 
       this.ctx.fillStyle = "#9ee7ff";
-      this.ctx.fillText("REDEPLOYING...", WIDTH / 2, HEIGHT / 2 + 34);
+      this.ctx.fillText("REDEPLOYING...", CANVAS_WIDTH / 2, HEIGHT / 2 + 34);
       return;
     }
 
     this.ctx.font = "54px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff355d";
-    this.ctx.fillText("SIGNAL COLLAPSING", WIDTH / 2, HEIGHT / 2 - 70);
+    this.ctx.fillText("SIGNAL COLLAPSING", CANVAS_WIDTH / 2, HEIGHT / 2 - 70);
 
     this.ctx.font = "24px 'Courier New', monospace";
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("NO LIVES REMAINING", WIDTH / 2, HEIGHT / 2 - 18);
+    this.ctx.fillText("NO LIVES REMAINING", CANVAS_WIDTH / 2, HEIGHT / 2 - 18);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("TRANSMISSION ENDING...", WIDTH / 2, HEIGHT / 2 + 34);
+    this.ctx.fillText("TRANSMISSION ENDING...", CANVAS_WIDTH / 2, HEIGHT / 2 + 34);
   }
 
   drawPauseScreen(): void {
     this.ctx.fillStyle = "rgba(0, 0, 0, 0.74)";
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
     this.ctx.textAlign = "center";
     this.ctx.font = "60px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("PAUSED", WIDTH / 2, HEIGHT / 2 - 52);
+    this.ctx.fillText("PAUSED", CANVAS_WIDTH / 2, HEIGHT / 2 - 52);
 
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, HEIGHT / 2 + 4);
+    this.ctx.fillText("THE CITADEL IS WATCHING...", CANVAS_WIDTH / 2, HEIGHT / 2 + 4);
 
     this.ctx.font = "20px 'Courier New', monospace";
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("PRESS P OR ESC TO RESUME", WIDTH / 2, HEIGHT / 2 + 54);
+    this.ctx.fillText("PRESS P OR ESC TO RESUME", CANVAS_WIDTH / 2, HEIGHT / 2 + 54);
   }
 
   drawWaveClearScreen(): void {
     this.ctx.fillStyle = "rgba(0, 0, 0, 0.70)";
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
     this.ctx.textAlign = "center";
     this.ctx.font = "58px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("WAVE CLEARED", WIDTH / 2, HEIGHT / 2 - 44);
+    this.ctx.fillText("WAVE CLEARED", CANVAS_WIDTH / 2, HEIGHT / 2 - 44);
 
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("UAEC FORMATION BROKEN.", WIDTH / 2, HEIGHT / 2 + 10);
+    this.ctx.fillText("UAEC FORMATION BROKEN.", CANVAS_WIDTH / 2, HEIGHT / 2 + 10);
 
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("NEXT WAVE INCOMING..", WIDTH / 2, HEIGHT / 2 + 46);
+    this.ctx.fillText("NEXT WAVE INCOMING..", CANVAS_WIDTH / 2, HEIGHT / 2 + 46);
   }
 
   drawGameOverScreen(state: GameOverScreenState): void {
@@ -197,19 +197,19 @@ export class ScreenRenderer {
     const newHighFlash = 0.75 + Math.sin(time * 6.5) * 0.25;
 
     this.ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
     this.ctx.textAlign = "center";
     this.ctx.font = "62px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("SIGNAL LOST", WIDTH / 2, 88);
+    this.ctx.fillText("SIGNAL LOST", CANVAS_WIDTH / 2, 88);
 
     if (state.earnedNewHighScore) {
       this.ctx.save();
       this.ctx.globalAlpha = newHighFlash;
       this.ctx.font = "26px 'Courier New', monospace";
       this.ctx.fillStyle = "#fff7d6";
-      this.ctx.fillText("NEW HIGH SCORE", WIDTH / 2, 128);
+      this.ctx.fillText("NEW HIGH SCORE", CANVAS_WIDTH / 2, 128);
       this.ctx.restore();
     }
 
@@ -219,18 +219,18 @@ export class ScreenRenderer {
     this.ctx.textAlign = "center";
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText("THE CITADEL HAS WITNESSED", WIDTH / 2, 628);
+    this.ctx.fillText("THE CITADEL HAS WITNESSED", CANVAS_WIDTH / 2, 628);
 
     this.ctx.save();
     this.ctx.globalAlpha = promptPulse;
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillText(this.getGameOverPrompt(state), WIDTH / 2, 672);
+    this.ctx.fillText(this.getGameOverPrompt(state), CANVAS_WIDTH / 2, 672);
     this.ctx.restore();
   }
 
   private drawStartControls(panelY: number, state: StartScreenState): void {
-    const controlsX = WIDTH / 2 - 195;
+    const controlsX = CANVAS_WIDTH / 2 - 195;
     const controlsY = panelY + 386;
 
     this.ctx.textAlign = "left";
@@ -256,21 +256,21 @@ export class ScreenRenderer {
     this.ctx.fillStyle = "#f5f7ff";
     this.ctx.fillText(
       `HIGH SCORE: ${String(highScore).padStart(6, "0")}`,
-      WIDTH / 2,
+      CANVAS_WIDTH / 2,
       660,
     );
 
     this.ctx.font = "17px 'Courier New', monospace";
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText("THE CITADEL IS WATCHING...", WIDTH / 2, 690);
+    this.ctx.fillText("THE CITADEL IS WATCHING...", CANVAS_WIDTH / 2, 690);
 
     this.ctx.font = "13px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText(BUILD_LABEL, WIDTH / 2, 716);
+    this.ctx.fillText(BUILD_LABEL, CANVAS_WIDTH / 2, 716);
   }
 
   private drawGameOverStats(state: GameOverScreenState): void {
-    const panelX = WIDTH / 2 - 210;
+    const panelX = CANVAS_WIDTH / 2 - 210;
     const panelY = 150;
     const panelW = 420;
     const panelH = 112;
@@ -284,17 +284,17 @@ export class ScreenRenderer {
 
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText(`FINAL SCORE: ${String(state.score).padStart(6, "0")}`, WIDTH / 2, panelY + 34);
+    this.ctx.fillText(`FINAL SCORE: ${String(state.score).padStart(6, "0")}`, CANVAS_WIDTH / 2, panelY + 34);
 
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText(`HIGH SCORE: ${String(state.highScore).padStart(6, "0")}`, WIDTH / 2, panelY + 66);
+    this.ctx.fillText(`HIGH SCORE: ${String(state.highScore).padStart(6, "0")}`, CANVAS_WIDTH / 2, panelY + 66);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText(`WAVE REACHED: ${String(state.wave).padStart(2, "0")}`, WIDTH / 2, panelY + 98);
+    this.ctx.fillText(`WAVE REACHED: ${String(state.wave).padStart(2, "0")}`, CANVAS_WIDTH / 2, panelY + 98);
   }
 
   private drawLeaderboardPanel(state: GameOverScreenState): void {
-    const panelX = WIDTH / 2 - 330;
+    const panelX = CANVAS_WIDTH / 2 - 330;
     const panelY = 286;
     const panelW = 660;
     const panelH = 286;
@@ -309,7 +309,7 @@ export class ScreenRenderer {
     this.ctx.textAlign = "center";
     this.ctx.font = "22px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("CITADEL LEADERBOARD", WIDTH / 2, panelY + 34);
+    this.ctx.fillText("CITADEL LEADERBOARD", CANVAS_WIDTH / 2, panelY + 34);
 
     this.drawInitialsEntry(state, panelX, panelY);
     this.drawLeaderboardRows(state, panelX, panelY);

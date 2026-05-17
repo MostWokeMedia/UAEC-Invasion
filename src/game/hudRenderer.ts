@@ -1,5 +1,5 @@
 import type { SpriteManager } from "./assets";
-import { WIDTH } from "./constants";
+import { CANVAS_WIDTH, PLAYFIELD_X, WIDTH } from "./constants";
 import type { SpriteRenderer } from "./spriteRenderer";
 
 export type HudState = {
@@ -40,19 +40,19 @@ export class HudRenderer {
 
   private drawPanel(): void {
     this.ctx.fillStyle = "rgba(2, 3, 10, 0.78)";
-    this.ctx.fillRect(0, 0, WIDTH, 86);
+    this.ctx.fillRect(0, 0, CANVAS_WIDTH, 86);
 
     this.ctx.strokeStyle = "rgba(255, 79, 154, 0.65)";
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.moveTo(0, 86);
-    this.ctx.lineTo(WIDTH, 86);
+    this.ctx.lineTo(CANVAS_WIDTH, 86);
     this.ctx.stroke();
 
     this.ctx.strokeStyle = "rgba(158, 231, 255, 0.25)";
     this.ctx.beginPath();
     this.ctx.moveTo(0, 82);
-    this.ctx.lineTo(WIDTH, 82);
+    this.ctx.lineTo(CANVAS_WIDTH, 82);
     this.ctx.stroke();
   }
 
@@ -60,30 +60,30 @@ export class HudRenderer {
     this.ctx.textAlign = "left";
     this.ctx.font = "15px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
-    this.ctx.fillText("SCORE", 28, 26);
-    this.ctx.fillText("HI-SCORE", 224, 26);
-    this.ctx.fillText("WAVE", 454, 26);
-    this.ctx.fillText("LIVES", 610, 26);
+    this.ctx.fillText("SCORE", PLAYFIELD_X + 28, 26);
+    this.ctx.fillText("HI-SCORE", PLAYFIELD_X + 224, 26);
+    this.ctx.fillText("WAVE", PLAYFIELD_X + 454, 26);
+    this.ctx.fillText("LIVES", PLAYFIELD_X + 610, 26);
   }
 
   private drawValues(state: HudState): void {
     this.ctx.font = "28px 'Courier New', monospace";
 
     this.ctx.fillStyle = "#f5f7ff";
-    this.ctx.fillText(String(state.score).padStart(6, "0"), 28, 62);
+    this.ctx.fillText(String(state.score).padStart(6, "0"), PLAYFIELD_X + 28, 62);
 
     this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillText(String(state.highScore).padStart(6, "0"), 224, 62);
+    this.ctx.fillText(String(state.highScore).padStart(6, "0"), PLAYFIELD_X + 224, 62);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText(String(state.wave).padStart(2, "0"), 454, 62);
+    this.ctx.fillText(String(state.wave).padStart(2, "0"), PLAYFIELD_X + 454, 62);
   }
 
   private drawLives(lives: number): void {
     const lifeHeadSprite = this.sprites.get("citizenLifeHead");
 
     for (let i = 0; i < lives; i++) {
-      const x = 612 + i * 38;
+      const x = PLAYFIELD_X + 612 + i * 38;
       const y = 38;
 
       if (lifeHeadSprite) {
@@ -107,9 +107,9 @@ export class HudRenderer {
     this.ctx.font = "15px 'Courier New', monospace";
 
     this.ctx.fillStyle = state.isMusicMuted ? "#ff4f9a" : "#9ee7ff";
-    this.ctx.fillText(state.isMusicMuted ? "MUSIC OFF [M]" : "MUSIC [M]", WIDTH - 28, 26);
+    this.ctx.fillText(state.isMusicMuted ? "MUSIC OFF [M]" : "MUSIC [M]", PLAYFIELD_X + WIDTH - 28, 26);
 
     this.ctx.fillStyle = state.isSfxMuted ? "#ff4f9a" : "#9ee7ff";
-    this.ctx.fillText(state.isSfxMuted ? "SFX OFF [N]" : "SFX [N]", WIDTH - 28, 50);
+    this.ctx.fillText(state.isSfxMuted ? "SFX OFF [N]" : "SFX [N]", PLAYFIELD_X + WIDTH - 28, 50);
   }
 }

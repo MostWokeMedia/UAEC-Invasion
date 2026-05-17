@@ -1,4 +1,4 @@
-import { HEIGHT, WIDTH } from "./constants";
+import { CANVAS_WIDTH, HEIGHT, PLAYFIELD_X, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
 import { AtmosphereRenderer } from "./atmosphereRenderer";
 import { BALANCE } from "./balance";
@@ -64,7 +64,7 @@ export class Game {
   private static readonly HIGH_SCORE_KEY = "uaec-invasion-high-score";
   private static readonly LEADERBOARD_VISIBLE_ROWS = 6;
   private static readonly LEADERBOARD_SCROLLBAR = {
-    x: WIDTH / 2 - 330 + 624,
+    x: CANVAS_WIDTH / 2 - 330 + 624,
     y: 286 + 70,
     width: 12,
     height: 176,
@@ -297,48 +297,60 @@ export class Game {
   }
 
   render(): void {
-  this.ctx.save();
-  this.applyScreenShake();
+    this.ctx.save();
+    this.applyScreenShake();
 
-  this.drawBackground();
+    this.drawBackground();
 
-  // Keep rain / CRT behind gameplay objects so enemies stay readable.
-  this.atmosphereRenderer.drawAtmosphereOverlay();
+    // Keep rain / CRT behind gameplay objects so enemies stay readable.
+    this.atmosphereRenderer.drawAtmosphereOverlay();
 
-  // Darken the busy street before drawing enemies and projectiles.
-  this.atmosphereRenderer.drawGameplayReadabilityVeil();
+    // Darken the busy street before drawing enemies and projectiles.
+    this.atmosphereRenderer.drawGameplayReadabilityVeil();
 
-  this.drawTank();
-  this.drawEnemies();
-  this.drawBarricades();
-  this.drawProjectiles();
-  this.drawExplosions();
-  this.drawPlayer();
-  this.drawFloatingTexts();
-  this.drawHud();
+    this.drawPlayfieldObjects();
+    this.drawHud();
 
-  if (this.mode === "start") {
-    this.drawStartScreen();
+    if (this.mode === "start") {
+      this.drawStartScreen();
+    }
+
+    if (this.mode === "game-over") {
+      this.drawGameOverScreen();
+    }
+
+    if (this.mode === "paused") {
+      this.drawPauseScreen();
+    }
+
+    if (this.mode === "wave-clear") {
+      this.drawWaveClearScreen();
+    }
+
+    if (this.mode === "player-hit") {
+      this.drawPlayerHitScreen();
+    }
+
+    this.ctx.restore();
   }
 
-  if (this.mode === "game-over") {
-    this.drawGameOverScreen();
-  }
+  private drawPlayfieldObjects(): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.rect(PLAYFIELD_X, 0, WIDTH, HEIGHT);
+    this.ctx.clip();
+    this.ctx.translate(PLAYFIELD_X, 0);
 
-  if (this.mode === "paused") {
-    this.drawPauseScreen();
-  }
+    this.drawTank();
+    this.drawEnemies();
+    this.drawBarricades();
+    this.drawProjectiles();
+    this.drawExplosions();
+    this.drawPlayer();
+    this.drawFloatingTexts();
 
-  if (this.mode === "wave-clear") {
-    this.drawWaveClearScreen();
+    this.ctx.restore();
   }
-
-  if (this.mode === "player-hit") {
-    this.drawPlayerHitScreen();
-  }
-
-  this.ctx.restore();
-}
 
   private updatePlaying(dtMs: number): void {
     this.player.invulnerableMs = Math.max(0, this.player.invulnerableMs - dtMs);

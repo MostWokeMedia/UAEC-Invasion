@@ -6,6 +6,8 @@ All notable project changes should be documented here.
 
 ### Changed
 
+- Swapped the gameplay background to the wider Neo Tokyo street background asset.
+- Added a 1280px wide visual canvas with the existing 960px gameplay lane clipped and centered.
 - Replaced enemy explosion placeholder sprites with a sharper three-frame pixel-art blast sequence.
 - Repaired `README.md` so it is valid Markdown and removed the accidental pasted shell fragment.
 - Added safety/revert guidance to `RELEASE_CHECKLIST.md`.

@@ -38,7 +38,7 @@ body {
 }
 
 canvas {
-  width: min(96vw, 960px);
+  width: min(96vw, 1280px);
   height: auto;
   border: 2px solid #ff4f9a;
   background: #050812;
@@ -103,7 +103,7 @@ canvas {
   }
 
   canvas {
-    width: min(100vw - 16px, 960px);
+    width: min(100vw - 16px, 1280px);
     max-height: calc(100vh - 112px);
   }
 
