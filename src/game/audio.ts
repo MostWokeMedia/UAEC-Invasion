@@ -2,6 +2,11 @@ import { readBoolean, writeBoolean } from "./storage";
 
 const MUSIC_MUTED_KEY = "uaec-music-muted";
 const SFX_MUTED_KEY = "uaec-sfx-muted";
+const MUSIC_TRACKS = [
+  "/assets/audio/music_loop.mp3",
+  "/assets/audio/music_loop_02.mp3",
+  "/assets/audio/music_loop_03.mp3",
+];
 
 export class AudioManager {
   private context: AudioContext | null = null;
@@ -10,6 +15,8 @@ export class AudioManager {
   private tankRumbleOvertone: OscillatorNode | null = null;
   private tankRumbleGain: GainNode | null = null;
   private music: HTMLAudioElement | null = null;
+  private musicTrackIndex = 0;
+  private failedMusicTracks = new Set<number>();
   private unlockHandler: (() => void) | null = null;
 
   private musicMuted = readBoolean(MUSIC_MUTED_KEY, false);
@@ -59,7 +66,6 @@ export class AudioManager {
       });
     }
   }
-
 
   pauseMusic(): void {
     this.musicPausedForGame = true;
@@ -247,20 +253,55 @@ export class AudioManager {
       return;
     }
 
-    const music = new Audio("/assets/audio/music_loop.mp3");
+    this.loadMusicTrack(this.musicTrackIndex);
+  }
 
-    music.loop = true;
+  private loadMusicTrack(trackIndex: number): void {
+    this.music?.pause();
+    this.music = null;
+    this.musicTrackIndex = trackIndex;
+
+    const music = new Audio(MUSIC_TRACKS[trackIndex]);
+
+    music.loop = false;
     music.volume = 0.04;
     music.muted = this.musicMuted;
 
     music.addEventListener("error", () => {
-      this.musicLoadFailed = true;
+      this.failedMusicTracks.add(trackIndex);
+      if (this.music !== music) return;
+
       this.music = null;
-      console.info("UAEC Invasion: no music_loop.mp3 found. Music disabled.");
+
+      if (this.failedMusicTracks.size >= MUSIC_TRACKS.length) {
+        this.musicLoadFailed = true;
+        console.info("UAEC Invasion: no music loop files found. Music disabled.");
+        return;
+      }
+
+      this.loadMusicTrack(this.getNextAvailableTrackIndex(trackIndex));
+    });
+
+    music.addEventListener("ended", () => {
+      if (this.music !== music) return;
+
+      this.loadMusicTrack(this.getNextAvailableTrackIndex(trackIndex));
     });
 
     this.music = music;
     this.playMusicIfAvailable();
+  }
+
+  private getNextAvailableTrackIndex(currentIndex: number): number {
+    for (let offset = 1; offset <= MUSIC_TRACKS.length; offset++) {
+      const index = (currentIndex + offset) % MUSIC_TRACKS.length;
+
+      if (!this.failedMusicTracks.has(index)) {
+        return index;
+      }
+    }
+
+    return currentIndex;
   }
 
   private playMusicIfAvailable(): void {
