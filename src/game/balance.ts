@@ -115,7 +115,7 @@ export const DIFFICULTY_PRESETS: Record<DifficultyMode, DifficultySettings> = {
   },
   hard: {
     label: "Hard",
-    lives: 3,
+    lives: 2,
     enemyProjectileSpeedMultiplier: 1.15,
     enemyShotCooldownMultiplier: 0.8,
     maxEnemyProjectiles: 4,

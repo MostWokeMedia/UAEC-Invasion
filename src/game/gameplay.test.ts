@@ -183,6 +183,7 @@ describe("difficulty tuning", () => {
     expect(DIFFICULTY_PRESETS.classic.maxEnemyProjectiles).toBe(3);
     expect(DIFFICULTY_PRESETS.hard.maxEnemyProjectiles).toBe(4);
     expect(DIFFICULTY_PRESETS.nightmare.maxEnemyProjectiles).toBe(5);
+    expect(DIFFICULTY_PRESETS.hard.lives).toBe(2);
     expect(DIFFICULTY_PRESETS.nightmare.lives).toBe(1);
     expect(DIFFICULTY_PRESETS.nightmare.enemyProjectileSpeedMultiplier).toBeGreaterThan(
       DIFFICULTY_PRESETS.hard.enemyProjectileSpeedMultiplier,
