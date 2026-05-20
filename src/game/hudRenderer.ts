@@ -1,4 +1,5 @@
 import type { SpriteManager } from "./assets";
+import { DIFFICULTY_PRESETS, type DifficultyMode } from "./balance";
 import { CANVAS_WIDTH } from "./constants";
 import type { SpriteRenderer } from "./spriteRenderer";
 
@@ -7,6 +8,7 @@ export type HudState = {
   highScore: number;
   wave: number;
   lives: number;
+  difficulty: DifficultyMode;
   isMusicMuted: boolean;
   isSfxMuted: boolean;
 };
@@ -62,7 +64,8 @@ export class HudRenderer {
     this.ctx.fillStyle = "#9ee7ff";
     this.ctx.fillText("SCORE", 72, 26);
     this.ctx.fillText("HI-SCORE", 316, 26);
-    this.ctx.fillText("WAVE", CANVAS_WIDTH / 2 - 28, 26);
+    this.ctx.fillText("WAVE", CANVAS_WIDTH / 2 - 78, 26);
+    this.ctx.fillText("MODE", CANVAS_WIDTH / 2 + 24, 26);
     this.ctx.fillText("LIVES", 846, 26);
   }
 
@@ -76,7 +79,15 @@ export class HudRenderer {
     this.ctx.fillText(String(state.highScore).padStart(6, "0"), 316, 62);
 
     this.ctx.fillStyle = "#ff4f9a";
-    this.ctx.fillText(String(state.wave).padStart(2, "0"), CANVAS_WIDTH / 2 - 26, 62);
+    this.ctx.fillText(String(state.wave).padStart(2, "0"), CANVAS_WIDTH / 2 - 76, 62);
+
+    this.ctx.font = "20px 'Courier New', monospace";
+    this.ctx.fillStyle = "#9ee7ff";
+    this.ctx.fillText(
+      DIFFICULTY_PRESETS[state.difficulty].label.toUpperCase(),
+      CANVAS_WIDTH / 2 + 24,
+      60,
+    );
   }
 
   private drawLives(lives: number): void {

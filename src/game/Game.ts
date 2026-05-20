@@ -1,7 +1,13 @@
 import { CANVAS_WIDTH, HEIGHT, PLAYFIELD_X, WIDTH } from "./constants";
 import { AudioManager } from "./audio";
 import { AtmosphereRenderer } from "./atmosphereRenderer";
-import { BALANCE } from "./balance";
+import {
+  BALANCE,
+  DIFFICULTY_MODES,
+  DIFFICULTY_PRESETS,
+  type DifficultyMode,
+  type DifficultySettings,
+} from "./balance";
 import { BarricadeRenderer } from "./barricadeRenderer";
 import { BackgroundRenderer } from "./backgroundRenderer";
 import { SpriteManager } from "./assets";
@@ -42,7 +48,10 @@ import {
   type LeaderboardEntry,
 } from "./leaderboard";
 import { EXPLOSION_SPRITE, PROJECTILE_SPRITE } from "./rendering";
-import { ScreenRenderer } from "./screenRenderer";
+import {
+  getDifficultyOptionTargets,
+  ScreenRenderer,
+} from "./screenRenderer";
 import { SpriteRenderer } from "./spriteRenderer";
 import { readNumber, writeNumber } from "./storage";
 import { TankRenderer } from "./tankRenderer";
@@ -74,7 +83,9 @@ export class Game {
   private score = 0;
   private highScore = readNumber(Game.HIGH_SCORE_KEY, 0);
   private wave = 1;
-  private lives = 3;
+  private lives = DIFFICULTY_PRESETS.classic.lives;
+  private difficulty: DifficultyMode = "classic";
+  private wasPointerDownOnStartScreen = false;
   private modeTimerMs = 0;
   private playerShotCount = 0;
   private earnedNewHighScore = false;
@@ -235,6 +246,13 @@ export class Game {
       this.audio.toggleSfxMute();
     }
 
+    if (this.input.consume("BracketLeft")) {
+      this.audio.playPreviousMusicTrack();
+    }
+
+    if (this.input.consume("BracketRight")) {
+      this.audio.playNextMusicTrack();
+    }
 
     const pausePressed = this.input.consume("KeyP") || this.input.consume("Escape");
 
@@ -256,6 +274,8 @@ export class Game {
     }
 
     if (this.mode === "start") {
+      this.updateStartScreenDifficulty();
+
       const startPressed = this.input.consume("Enter") || this.input.consume("Space");
 
       if (startPressed) {
@@ -368,10 +388,47 @@ export class Game {
     this.checkWaveAndLossConditions();
   }
 
+  private updateStartScreenDifficulty(): void {
+    if (this.input.consume("ArrowLeft")) {
+      this.cycleDifficulty(-1);
+    }
+
+    if (this.input.consume("ArrowRight")) {
+      this.cycleDifficulty(1);
+    }
+
+    const pointer = this.input.getPointerState();
+    const isNewPress = pointer.isDown && !this.wasPointerDownOnStartScreen;
+    this.wasPointerDownOnStartScreen = pointer.isDown;
+
+    if (!isNewPress) return;
+
+    const selectedTarget = getDifficultyOptionTargets().find(
+      (target) =>
+        pointer.x >= target.x &&
+        pointer.x <= target.x + target.width &&
+        pointer.y >= target.y &&
+        pointer.y <= target.y + target.height,
+    );
+
+    if (selectedTarget) {
+      this.difficulty = selectedTarget.mode;
+    }
+  }
+
+  private cycleDifficulty(direction: -1 | 1): void {
+    const currentIndex = DIFFICULTY_MODES.indexOf(this.difficulty);
+    const nextIndex =
+      (currentIndex + direction + DIFFICULTY_MODES.length) %
+      DIFFICULTY_MODES.length;
+
+    this.difficulty = DIFFICULTY_MODES[nextIndex] ?? "classic";
+  }
+
   private startNewGame(): void {
     this.score = 0;
     this.wave = 1;
-    this.lives = 3;
+    this.lives = this.difficultySettings.lives;
     this.earnedNewHighScore = false;
     this.mode = "playing";
     this.playerShotCount = 0;
@@ -447,6 +504,7 @@ export class Game {
       initials: this.leaderboardInitials,
       score: this.score,
       wave: this.wave,
+      difficulty: this.difficulty,
     }).then((entry) => {
       this.leaderboardStatus = entry ? "submitted" : "failed";
 
@@ -570,7 +628,9 @@ export class Game {
       animationFrame: 0,
     };
 
-    this.enemyShotCooldownMs = BALANCE.enemies.startingShotCooldownMs;
+    this.enemyShotCooldownMs =
+      BALANCE.enemies.startingShotCooldownMs *
+      this.difficultySettings.enemyShotCooldownMultiplier;
     this.playerShotCount = 0;
 
     this.tank = {
@@ -582,8 +642,10 @@ export class Game {
       direction: 1,
       speed: BALANCE.tank.baseSpeed,
       spawnTimerMs:
-        BALANCE.tank.firstSpawnMinMs +
-        Math.random() * BALANCE.tank.firstSpawnRandomBonusMs,
+        this.getTankSpawnTimer(
+          BALANCE.tank.firstSpawnMinMs,
+          BALANCE.tank.firstSpawnRandomBonusMs,
+        ),
     };
   }
 
@@ -652,7 +714,7 @@ export class Game {
   private updateEnemyShooting(dtMs: number): void {
     this.enemyShotCooldownMs -= dtMs;
 
-    if (this.enemyProjectiles.length >= BALANCE.enemies.maxActiveProjectiles) return;
+    if (this.enemyProjectiles.length >= this.difficultySettings.maxEnemyProjectiles) return;
     if (this.enemyShotCooldownMs > 0) return;
 
     const shooter = chooseEnemyShooter(this.enemies);
@@ -667,12 +729,17 @@ export class Game {
       width: PROJECTILE_SPRITE.enemyCollisionWidth,
       height: PROJECTILE_SPRITE.enemyCollisionHeight,
       speedY:
-        BALANCE.enemies.baseProjectileSpeed +
-        this.wave * BALANCE.enemies.projectileSpeedPerWave,
+        (BALANCE.enemies.baseProjectileSpeed +
+          this.wave * BALANCE.enemies.projectileSpeedPerWave) *
+        this.difficultySettings.enemyProjectileSpeedMultiplier,
     });
 
     const aliveCount = this.getAliveEnemies().length;
-    this.enemyShotCooldownMs = getEnemyShotCooldown(aliveCount);
+    this.enemyShotCooldownMs = getEnemyShotCooldown(
+      aliveCount,
+      undefined,
+      this.difficultySettings,
+    );
   }
 
   private updateTank(dtMs: number): void {
@@ -685,17 +752,19 @@ export class Game {
       if (this.tank.direction === 1 && this.tank.x > WIDTH + 170) {
         this.tank.active = false;
         this.audio.stopTankRumble();
-        this.tank.spawnTimerMs =
-          BALANCE.tank.respawnMinMs +
-          Math.random() * BALANCE.tank.respawnRandomBonusMs;
+        this.tank.spawnTimerMs = this.getTankSpawnTimer(
+          BALANCE.tank.respawnMinMs,
+          BALANCE.tank.respawnRandomBonusMs,
+        );
       }
 
       if (this.tank.direction === -1 && this.tank.x < -190) {
         this.tank.active = false;
         this.audio.stopTankRumble();
-        this.tank.spawnTimerMs =
-          BALANCE.tank.respawnMinMs +
-          Math.random() * BALANCE.tank.respawnRandomBonusMs;
+        this.tank.spawnTimerMs = this.getTankSpawnTimer(
+          BALANCE.tank.respawnMinMs,
+          BALANCE.tank.respawnRandomBonusMs,
+        );
       }
 
       return;
@@ -774,9 +843,11 @@ export class Game {
       this.tank.active = false;
       this.audio.stopTankRumble();
       this.tank.spawnTimerMs =
-        BALANCE.tank.respawnMinMs +
         1000 +
-        Math.random() * BALANCE.tank.respawnRandomBonusMs;
+        this.getTankSpawnTimer(
+          BALANCE.tank.respawnMinMs,
+          BALANCE.tank.respawnRandomBonusMs,
+        );
       this.audio.playTankHit();
       return;
     }
@@ -909,6 +980,15 @@ export class Game {
     }
   }
 
+  private get difficultySettings(): DifficultySettings {
+    return DIFFICULTY_PRESETS[this.difficulty];
+  }
+
+  private getTankSpawnTimer(minMs: number, randomBonusMs: number): number {
+    return (minMs + Math.random() * randomBonusMs) *
+      this.difficultySettings.tankSpawnTimerMultiplier;
+  }
+
   private getPlayerHitbox(): Rect {
     return getPlayerHitbox(this.player);
   }
@@ -918,11 +998,15 @@ export class Game {
   }
 
   private getFormationStepDelay(aliveCount: number): number {
-    return getFormationStepDelay(aliveCount, this.wave);
+    return getFormationStepDelay(
+      aliveCount,
+      this.wave,
+      this.difficultySettings,
+    );
   }
 
   private getWaveStartingAdvance(): number {
-    return getWaveStartingAdvance(this.wave);
+    return getWaveStartingAdvance(this.wave, this.difficultySettings);
   }
 
   private addScore(points: number): void {
@@ -985,6 +1069,7 @@ export class Game {
       highScore: this.highScore,
       wave: this.wave,
       lives: this.lives,
+      difficulty: this.difficulty,
       isMusicMuted: this.audio.isMusicMuted,
       isSfxMuted: this.audio.isSfxMuted,
     });
@@ -1037,6 +1122,7 @@ export class Game {
     this.screenRenderer.drawStartScreen(
       {
         highScore: this.highScore,
+        difficulty: this.difficulty,
         isMusicMuted: this.audio.isMusicMuted,
         isSfxMuted: this.audio.isSfxMuted,
       },

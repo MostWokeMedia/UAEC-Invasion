@@ -18,6 +18,8 @@ export class InputManager {
     "KeyT",
     "KeyP",
     "KeyH",
+    "BracketLeft",
+    "BracketRight",
     "Backspace",
     "Escape",
   ]);

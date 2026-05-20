@@ -96,6 +96,14 @@ export class AudioManager {
     }
   }
 
+  playPreviousMusicTrack(): void {
+    this.switchMusicTrack(-1);
+  }
+
+  playNextMusicTrack(): void {
+    this.switchMusicTrack(1);
+  }
+
   startTankRumble(): void {
     if (this.tankRumbleOscillator || this.sfxMuted) return;
 
@@ -256,6 +264,18 @@ export class AudioManager {
     this.loadMusicTrack(this.musicTrackIndex);
   }
 
+  private switchMusicTrack(direction: -1 | 1): void {
+    if (this.failedMusicTracks.size >= MUSIC_TRACKS.length) return;
+
+    this.musicRequested = true;
+    this.musicLoadFailed = false;
+    const nextIndex = direction === 1
+      ? this.getNextAvailableTrackIndex(this.musicTrackIndex)
+      : this.getPreviousAvailableTrackIndex(this.musicTrackIndex);
+
+    this.loadMusicTrack(nextIndex);
+  }
+
   private loadMusicTrack(trackIndex: number): void {
     this.music?.pause();
     this.music = null;
@@ -295,6 +315,19 @@ export class AudioManager {
   private getNextAvailableTrackIndex(currentIndex: number): number {
     for (let offset = 1; offset <= MUSIC_TRACKS.length; offset++) {
       const index = (currentIndex + offset) % MUSIC_TRACKS.length;
+
+      if (!this.failedMusicTracks.has(index)) {
+        return index;
+      }
+    }
+
+    return currentIndex;
+  }
+
+  private getPreviousAvailableTrackIndex(currentIndex: number): number {
+    for (let offset = 1; offset <= MUSIC_TRACKS.length; offset++) {
+      const index =
+        (currentIndex - offset + MUSIC_TRACKS.length) % MUSIC_TRACKS.length;
 
       if (!this.failedMusicTracks.has(index)) {
         return index;

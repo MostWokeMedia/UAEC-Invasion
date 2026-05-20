@@ -1,3 +1,4 @@
+import type { DifficultyMode } from "./balance";
 import { BUILD_LABEL } from "./metadata";
 
 const LEADERBOARD_TABLE = "leaderboard_scores";
@@ -16,6 +17,7 @@ export type LeaderboardSubmission = {
   initials: string;
   score: number;
   wave: number;
+  difficulty?: DifficultyMode;
   buildLabel?: string;
 };
 
@@ -96,7 +98,7 @@ export async function submitLeaderboardScore(
       initials,
       score: Math.max(0, Math.floor(submission.score)),
       wave: Math.max(1, Math.floor(submission.wave)),
-      build_label: submission.buildLabel ?? BUILD_LABEL,
+      build_label: getSubmissionBuildLabel(submission),
     }),
   });
 
@@ -106,6 +108,21 @@ export async function submitLeaderboardScore(
   const row = rows[0];
 
   return row ? mapLeaderboardRow(row) : null;
+}
+
+
+export function isNightmareLeaderboardEntry(entry: LeaderboardEntry): boolean {
+  return entry.buildLabel.includes("[nightmare]");
+}
+
+function getSubmissionBuildLabel(submission: LeaderboardSubmission): string {
+  const buildLabel = submission.buildLabel ?? BUILD_LABEL;
+
+  if (submission.difficulty === "nightmare" && !buildLabel.includes("[nightmare]")) {
+    return `${buildLabel} [nightmare]`;
+  }
+
+  return buildLabel;
 }
 
 function getLeaderboardConfig(): LeaderboardConfig | null {

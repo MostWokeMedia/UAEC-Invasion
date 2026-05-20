@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { BALANCE, DIFFICULTY_PRESETS } from "./balance";
+import { getDifficultyOptionTargets } from "./screenRenderer";
 import {
   chooseEnemyShooter,
   createBarricades,
@@ -80,6 +82,24 @@ describe("getFormationStepDelay", () => {
     );
   });
 
+  it("applies harder difficulty speed multipliers", () => {
+    const classic = getFormationStepDelay(35, 1, DIFFICULTY_PRESETS.classic);
+    const hard = getFormationStepDelay(35, 1, DIFFICULTY_PRESETS.hard);
+    const nightmare = getFormationStepDelay(35, 1, DIFFICULTY_PRESETS.nightmare);
+
+    expect(classic).toBeGreaterThan(hard);
+    expect(hard).toBeGreaterThan(nightmare);
+    expect(nightmare).toBeCloseTo(529.6153846154);
+  });
+
+  it("accelerates nightmare formations by 5% each new wave", () => {
+    const waveOne = getFormationStepDelay(35, 1, DIFFICULTY_PRESETS.nightmare);
+    const waveTwo = getFormationStepDelay(35, 2, DIFFICULTY_PRESETS.nightmare);
+
+    expect(waveOne).toBeCloseTo(529.6153846154);
+    expect(waveTwo).toBeCloseTo(waveOne / 1.05);
+  });
+
   it("never goes below the configured minimum", () => {
     expect(getFormationStepDelay(1, 99)).toBeGreaterThanOrEqual(80);
   });
@@ -89,6 +109,10 @@ describe("getWaveStartingAdvance", () => {
   it("keeps early waves at the initial starting height", () => {
     expect(getWaveStartingAdvance(1)).toBe(0);
     expect(getWaveStartingAdvance(2)).toBe(0);
+  });
+
+  it("starts nightmare waves closer sooner", () => {
+    expect(getWaveStartingAdvance(2, DIFFICULTY_PRESETS.nightmare)).toBe(10);
   });
 });
 
@@ -136,6 +160,41 @@ describe("getEnemyShotCooldown", () => {
 
   it("adds the random cooldown bonus", () => {
     expect(getEnemyShotCooldown(35, 123)).toBe(1723);
+  });
+
+  it("applies harder difficulty cooldown multipliers", () => {
+    const classic = getEnemyShotCooldown(35, 123, DIFFICULTY_PRESETS.classic);
+    const hard = getEnemyShotCooldown(35, 123, DIFFICULTY_PRESETS.hard);
+    const nightmare = getEnemyShotCooldown(35, 123, DIFFICULTY_PRESETS.nightmare);
+
+    expect(classic).toBeGreaterThan(hard);
+    expect(hard).toBeGreaterThan(nightmare);
+    expect(hard).toBeCloseTo(1378.4);
+    expect(nightmare).toBeCloseTo(775.35);
+  });
+});
+
+describe("difficulty tuning", () => {
+  it("keeps the faster player missile speed in shared balance", () => {
+    expect(BALANCE.player.missileSpeed).toBe(-430);
+  });
+
+  it("scales projectile pressure and lives across modes", () => {
+    expect(DIFFICULTY_PRESETS.classic.maxEnemyProjectiles).toBe(3);
+    expect(DIFFICULTY_PRESETS.hard.maxEnemyProjectiles).toBe(4);
+    expect(DIFFICULTY_PRESETS.nightmare.maxEnemyProjectiles).toBe(5);
+    expect(DIFFICULTY_PRESETS.nightmare.lives).toBe(1);
+    expect(DIFFICULTY_PRESETS.nightmare.enemyProjectileSpeedMultiplier).toBeGreaterThan(
+      DIFFICULTY_PRESETS.hard.enemyProjectileSpeedMultiplier,
+    );
+  });
+
+  it("orders start screen click targets by difficulty", () => {
+    expect(getDifficultyOptionTargets().map((target) => target.mode)).toEqual([
+      "classic",
+      "hard",
+      "nightmare",
+    ]);
   });
 });
 

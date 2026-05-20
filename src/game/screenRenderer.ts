@@ -1,12 +1,48 @@
-import type { LeaderboardEntry } from "./leaderboard";
+import { isNightmareLeaderboardEntry, type LeaderboardEntry } from "./leaderboard";
 import { CANVAS_WIDTH, HEIGHT } from "./constants";
 import { BUILD_LABEL } from "./metadata";
+import { DIFFICULTY_MODES, DIFFICULTY_PRESETS, type DifficultyMode } from "./balance";
 
 export type StartScreenState = {
   highScore: number;
+  difficulty: DifficultyMode;
   isMusicMuted: boolean;
   isSfxMuted: boolean;
 };
+
+export type DifficultyOptionTarget = {
+  mode: DifficultyMode;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export function getDifficultyOptionTargets(): DifficultyOptionTarget[] {
+  const widths: Record<DifficultyMode, number> = {
+    classic: 174,
+    hard: 132,
+    nightmare: 226,
+  };
+  const gap = 24;
+  const totalWidth = DIFFICULTY_MODES.reduce(
+    (sum, mode) => sum + widths[mode],
+    gap * (DIFFICULTY_MODES.length - 1),
+  );
+  let x = CANVAS_WIDTH / 2 - totalWidth / 2;
+
+  return DIFFICULTY_MODES.map((mode) => {
+    const target = {
+      mode,
+      x,
+      y: 384,
+      width: widths[mode],
+      height: 44,
+    };
+    x += widths[mode] + gap;
+    return target;
+  });
+}
 
 export type GameOverScreenState = {
   score: number;
@@ -56,9 +92,9 @@ export class ScreenRenderer {
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, HEIGHT);
 
     const panelX = CANVAS_WIDTH / 2 - 320;
-    const panelY = 104;
+    const panelY = 70;
     const panelW = 640;
-    const panelH = 530;
+    const panelH = 540;
 
     this.ctx.fillStyle = "rgba(3, 4, 10, 0.76)";
     this.ctx.fillRect(panelX, panelY, panelW, panelH);
@@ -97,11 +133,13 @@ export class ScreenRenderer {
     this.ctx.fillStyle = "#ff4f9a";
     this.ctx.fillText("HOLD THE LINE.", CANVAS_WIDTH / 2, panelY + 286);
 
+    this.drawDifficultySelector(state.difficulty);
+
     this.ctx.save();
     this.ctx.globalAlpha = promptPulse;
     this.ctx.font = "28px 'Courier New', monospace";
     this.ctx.fillStyle = "#fff7d6";
-    this.ctx.fillText("PRESS ENTER OR SPACE", CANVAS_WIDTH / 2, panelY + 348);
+    this.ctx.fillText("PRESS ENTER OR SPACE", CANVAS_WIDTH / 2, panelY + 394);
     this.ctx.restore();
 
     this.drawStartControls(panelY, state);
@@ -229,25 +267,52 @@ export class ScreenRenderer {
     this.ctx.restore();
   }
 
+  private drawDifficultySelector(selectedDifficulty: DifficultyMode): void {
+    this.ctx.font = "19px 'Courier New', monospace";
+    this.ctx.textAlign = "center";
+
+    for (const target of getDifficultyOptionTargets()) {
+      const selected = target.mode === selectedDifficulty;
+
+      this.ctx.fillStyle = selected
+        ? "rgba(255, 79, 154, 0.24)"
+        : "rgba(3, 4, 10, 0.62)";
+      this.ctx.fillRect(target.x, target.y, target.width, target.height);
+
+      this.ctx.strokeStyle = selected
+        ? "rgba(255, 247, 214, 0.88)"
+        : "rgba(158, 231, 255, 0.34)";
+      this.ctx.lineWidth = selected ? 2 : 1;
+      this.ctx.strokeRect(target.x, target.y, target.width, target.height);
+
+      this.ctx.fillStyle = selected ? "#fff7d6" : "#9ee7ff";
+      this.ctx.fillText(
+        DIFFICULTY_PRESETS[target.mode].label.toUpperCase(),
+        target.x + target.width / 2,
+        target.y + 29,
+      );
+    }
+  }
+
   private drawStartControls(panelY: number, state: StartScreenState): void {
     const controlsX = CANVAS_WIDTH / 2 - 195;
-    const controlsY = panelY + 386;
+    const controlsY = panelY + 420;
 
     this.ctx.textAlign = "left";
-    this.ctx.font = "17px 'Courier New', monospace";
+    this.ctx.font = "16px 'Courier New', monospace";
     this.ctx.fillStyle = "#9ee7ff";
     this.ctx.fillText("A/D or ←/→", controlsX, controlsY);
-    this.ctx.fillText("SPACE", controlsX, controlsY + 28);
-    this.ctx.fillText("P/ESC", controlsX, controlsY + 56);
-    this.ctx.fillText("M", controlsX, controlsY + 84);
-    this.ctx.fillText("N", controlsX, controlsY + 112);
+    this.ctx.fillText("SPACE", controlsX, controlsY + 24);
+    this.ctx.fillText("P/ESC", controlsX, controlsY + 48);
+    this.ctx.fillText("M", controlsX, controlsY + 72);
+    this.ctx.fillText("N", controlsX, controlsY + 96);
 
     this.ctx.fillStyle = "#f5f7ff";
     this.ctx.fillText("MOVE", controlsX + 260, controlsY);
-    this.ctx.fillText("FIRE", controlsX + 260, controlsY + 28);
-    this.ctx.fillText("PAUSE", controlsX + 260, controlsY + 56);
-    this.ctx.fillText(state.isMusicMuted ? "MUSIC ON" : "MUSIC OFF", controlsX + 260, controlsY + 84);
-    this.ctx.fillText(state.isSfxMuted ? "SFX ON" : "SFX OFF", controlsX + 260, controlsY + 112);
+    this.ctx.fillText("FIRE", controlsX + 260, controlsY + 24);
+    this.ctx.fillText("PAUSE", controlsX + 260, controlsY + 48);
+    this.ctx.fillText(state.isMusicMuted ? "MUSIC ON" : "MUSIC OFF", controlsX + 260, controlsY + 72);
+    this.ctx.fillText(state.isSfxMuted ? "SFX ON" : "SFX OFF", controlsX + 260, controlsY + 96);
   }
 
   private drawStartFooter(highScore: number): void {
@@ -392,8 +457,12 @@ export class ScreenRenderer {
       }
 
       this.ctx.fillText(String(scrollOffset + index + 1).padStart(3, "0"), startX, y);
-      this.ctx.fillText(entry.initials, startX + 54, y);
-      this.ctx.fillText(String(entry.score).padStart(6, "0"), startX + 154, y);
+      const displayInitials = isNightmareLeaderboardEntry(entry)
+        ? `☠️ ${entry.initials}`
+        : entry.initials;
+
+      this.ctx.fillText(displayInitials, startX + 54, y);
+      this.ctx.fillText(String(entry.score).padStart(6, "0"), startX + 174, y);
 
       if (isHighlighted) {
         this.ctx.shadowBlur = 0;

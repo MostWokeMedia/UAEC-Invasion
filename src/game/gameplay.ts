@@ -1,4 +1,4 @@
-import { BALANCE } from "./balance";
+import { BALANCE, type DifficultySettings } from "./balance";
 import { COLS, ROWS, TOTAL_ENEMIES } from "./constants";
 import type {
   BarricadeBlock,
@@ -63,7 +63,11 @@ export function createBarricades(): BarricadeBlock[] {
   return blocks;
 }
 
-export function getFormationStepDelay(aliveCount: number, wave: number): number {
+export function getFormationStepDelay(
+  aliveCount: number,
+  wave: number,
+  difficulty?: DifficultySettings,
+): number {
   const wavePressure = Math.min(
     Math.max(wave - BALANCE.formation.waveSpeedStartsOnWave, 0) *
       BALANCE.formation.waveSpeedPressurePerWave,
@@ -81,19 +85,30 @@ export function getFormationStepDelay(aliveCount: number, wave: number): number 
   else if (aliveCount <= 28) baseDelay = delay.twentyEightOrLess;
   else baseDelay = delay.default;
 
-  return Math.max(BALANCE.formation.minimumStepDelayMs, baseDelay - wavePressure);
+  const difficultyMultiplier = difficulty?.formationStepDelayMultiplier ?? 1;
+  const waveSpeedIncrease = Math.max(wave - 1, 0) *
+    (difficulty?.formationSpeedIncreasePerWave ?? 0);
+  const waveMultiplier = 1 / (1 + waveSpeedIncrease);
+  const adjustedDelay = (baseDelay - wavePressure) *
+    difficultyMultiplier *
+    waveMultiplier;
+
+  return Math.max(BALANCE.formation.minimumStepDelayMs, adjustedDelay);
 }
 
-export function getWaveStartingAdvance(wave: number): number {
-  const waveOffset = Math.max(
-    wave - BALANCE.formation.waveAdvanceStartsOnWave,
-    0,
-  );
+export function getWaveStartingAdvance(
+  wave: number,
+  difficulty?: DifficultySettings,
+): number {
+  const waveAdvanceStartsOnWave =
+    difficulty?.waveAdvanceStartsOnWave ?? BALANCE.formation.waveAdvanceStartsOnWave;
+  const waveAdvancePerWave =
+    difficulty?.waveAdvancePerWave ?? BALANCE.formation.waveAdvancePerWave;
+  const maxStartingAdvance =
+    difficulty?.maxStartingAdvance ?? BALANCE.formation.maxStartingAdvance;
+  const waveOffset = Math.max(wave - waveAdvanceStartsOnWave, 0);
 
-  return Math.min(
-    waveOffset * BALANCE.formation.waveAdvancePerWave,
-    BALANCE.formation.maxStartingAdvance,
-  );
+  return Math.min(waveOffset * waveAdvancePerWave, maxStartingAdvance);
 }
 
 export function getTankScore(
@@ -138,6 +153,7 @@ export function chooseEnemyShooter(
 export function getEnemyShotCooldown(
   aliveCount: number,
   randomBonusMs: number = Math.random() * BALANCE.enemies.randomCooldownBonusMs,
+  difficulty?: DifficultySettings,
 ): number {
   const baseCooldown = Math.max(
     BALANCE.enemies.minimumShotCooldownMs,
@@ -146,7 +162,8 @@ export function getEnemyShotCooldown(
         BALANCE.enemies.cooldownReductionPerEnemyKilledMs,
   );
 
-  return baseCooldown + randomBonusMs;
+  return (baseCooldown + randomBonusMs) *
+    (difficulty?.enemyShotCooldownMultiplier ?? 1);
 }
 
 export function updateExplosions(
