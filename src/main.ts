@@ -82,7 +82,8 @@ for (const button of touchButtons) {
 let lastTimestamp = performance.now();
 
 function loop(timestamp: number): void {
-  const dtMs = Math.min(50, timestamp - lastTimestamp);
+  const MAX_FRAME_MS = 1000 / 30;
+  const dtMs = Math.min(MAX_FRAME_MS, Math.max(0, timestamp - lastTimestamp));
   lastTimestamp = timestamp;
 
   game.update(dtMs);

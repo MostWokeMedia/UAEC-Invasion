@@ -120,30 +120,51 @@ export class AtmosphereRenderer {
     return canvas;
   }
 
+  private rainTile: HTMLCanvasElement | null = null;
+
+  private createRainTile(): HTMLCanvasElement {
+    // Pre-render the 90 rain streaks once at time 0; animation is a uniform
+    // wrapped translation, so each frame just blits this tile with an offset.
+    const canvas = this.createOverlayCanvas();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return canvas;
+
+    ctx.strokeStyle = "#9ee7ff";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < 90; i++) {
+      const seedX = (i * 97) % CANVAS_WIDTH;
+      const seedY = (i * 53) % HEIGHT;
+      const x = (((seedX + Math.sin(i * 12.9898) * 40) % CANVAS_WIDTH) + CANVAS_WIDTH) % CANVAS_WIDTH;
+      const y = (seedY + i * 17) % HEIGHT;
+      const length = 10 + (i % 4) * 4;
+
+      // Draw wrapped copies so streaks crossing tile edges stay seamless.
+      for (const dx of [-CANVAS_WIDTH, 0, CANVAS_WIDTH]) {
+        for (const dy of [-HEIGHT, 0]) {
+          ctx.beginPath();
+          ctx.moveTo(x + dx, y + dy);
+          ctx.lineTo(x + dx - 5, y + dy + length);
+          ctx.stroke();
+        }
+      }
+    }
+
+    return canvas;
+  }
+
   private drawRainOverlay(): void {
-    const time = performance.now() / 1000;
-    const rainCount = 90;
-    const fallSpeed = time * 360;
+    if (!this.rainTile) this.rainTile = this.createRainTile();
+    const fallSpeed = (performance.now() / 1000) * 360;
+    const ox = (fallSpeed * 0.16) % CANVAS_WIDTH;
+    const oy = fallSpeed % HEIGHT;
 
     this.ctx.save();
     this.ctx.globalAlpha = 0.22;
-    this.ctx.strokeStyle = "#9ee7ff";
-    this.ctx.lineWidth = 1;
-
-    for (let i = 0; i < rainCount; i++) {
-      const seedX = (i * 97) % CANVAS_WIDTH;
-      const seedY = (i * 53) % HEIGHT;
-      const x = (seedX + Math.sin(i * 12.9898) * 40 + fallSpeed * 0.16) % CANVAS_WIDTH;
-      const y = (seedY + fallSpeed + i * 17) % HEIGHT;
-      const length = 10 + (i % 4) * 4;
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, y);
-      this.ctx.lineTo(x - 5, y + length);
-      this.ctx.stroke();
-    }
-
+    this.ctx.drawImage(this.rainTile, ox, oy);
+    this.ctx.drawImage(this.rainTile, ox - CANVAS_WIDTH, oy);
+    this.ctx.drawImage(this.rainTile, ox, oy - HEIGHT);
+    this.ctx.drawImage(this.rainTile, ox - CANVAS_WIDTH, oy - HEIGHT);
     this.ctx.restore();
   }
-
 }
